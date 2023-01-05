@@ -2,5 +2,5 @@
 Repository for a computer graphics project with rollercoaster using OpenGL
 
 
-mysterion186 : Julien RAVINDRARASA
+mysterion186 : Julien RAVINDRARASA  
 Amst64 : Askar SEYADOUMOUGAMMADOU

@@ -1,6 +1,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+#include <glimac/FilePath.hpp>
+#include <glimac/Program.hpp>
+#include <glimac/Sphere.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -27,8 +30,10 @@ static void size_callback(GLFWwindow* /*window*/, int width, int height)
     window_height = height;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    int a = argc;
+    a++;
     /* Initialize the library */
     if (!glfwInit()) {
         return -1;
@@ -63,10 +68,62 @@ int main()
     glfwSetCursorPosCallback(window, &cursor_position_callback);
     glfwSetWindowSizeCallback(window, &size_callback);
 
+    //chargement des shaders
+    glimac::FilePath applicationPath(argv[0]);
+    glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+    program.use();
+
+    GLuint uMVPMatrix = glGetUniformLocation(program.getGLId(), "uMVPMatrix");
+    GLuint uNormalMatrix = glGetUniformLocation(program.getGLId(), "uNormalMatrix");
+
+    glimac::Sphere sphere(1, 16, 32);
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(glimac::ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    const GLuint VERTEX_ATTRIB_POS = 0;
+    const GLuint VERTEX_ATTRIB_NORMAL = 1;
+    const GLuint VERTEX_ATTRIB_UV = 2;
+
+    glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
+    glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
+    glEnableVertexAttribArray(VERTEX_ATTRIB_UV);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(VERTEX_ATTRIB_POS, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, position));
+    glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, normal));
+    glVertexAttribPointer(VERTEX_ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, texCoords));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glm::mat4 ProjMatrix, MVMatrix, NormalMatrix;
+
+    ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
+    MVMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
+    NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+
+    glm::mat4 MVPMatrix = ProjMatrix * MVMatrix;
+
+    glUniformMatrix4fv(uMVPMatrix, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
+    glUniformMatrix4fv(uNormalMatrix, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
+
+    glEnable(GL_DEPTH_TEST);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         glClearColor(1.000f, 0.992f, 0.735f, 1.000f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, sphere.getVertexCount());
+        glBindVertexArray(0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -75,5 +132,8 @@ int main()
     }
 
     glfwTerminate();
+
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
     return 0;
 }

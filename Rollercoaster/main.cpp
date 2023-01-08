@@ -4,6 +4,7 @@
 #include <glimac/FilePath.hpp>
 #include <glimac/Program.hpp>
 #include <glimac/Sphere.hpp>
+#include <glimac/Cube.hpp>
 #include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
 #include <glimac/Mesh.hpp>
 
@@ -99,20 +100,16 @@ int main(int argc, char* argv[])
     glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
     program.use();
 
-    GLuint uMVPMatrix = glGetUniformLocation(program.getGLId(), "uMVPMatrix");
-    GLuint uNormalMatrix = glGetUniformLocation(program.getGLId(), "uNormalMatrix");
-
     glimac::Sphere sphere(1, 16, 32);
-
     glimac::Mesh spehereMesh(sphere.getVertices());
+
+    glimac::Cube cube;
+    std::cout << "Cube vertices : " << cube.getVertexCount() << std::endl;
+    glimac::Mesh cubeMesh(cube.getVertices());
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
     ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
-    ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
-    NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-
-    glUniformMatrix4fv(uNormalMatrix, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 
     glEnable(GL_DEPTH_TEST);
 
@@ -121,6 +118,8 @@ int main(int argc, char* argv[])
     float deltaTime = 0;
 
     float cameraSpeed = 1.5f;
+
+    GLuint programID = program.getGLId();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -135,11 +134,16 @@ int main(int argc, char* argv[])
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
 
         ViewMatrix = camera.getViewMatrix();
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         glm::mat4 MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
+        spehereMesh.Draw(programID, MVPMatrix, NormalMatrix);
 
-        glUniformMatrix4fv(uMVPMatrix, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
-
-        spehereMesh.Draw();
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
+        cubeMesh.Draw(programID, MVPMatrix, NormalMatrix);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

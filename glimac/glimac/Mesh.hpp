@@ -39,8 +39,11 @@ namespace glimac {
             setupMesh();
         }
 
-		void Draw()
+		void Draw(GLuint programID, glm::mat4 MVPMatrix, glm::mat4 NormalMatrix)
         {
+            glUniformMatrix4fv(glGetUniformLocation(programID, "uNormalMatrix"), 1, GL_FALSE, glm::value_ptr(NormalMatrix));
+            glUniformMatrix4fv(glGetUniformLocation(programID, "uMVPMatrix"), 1, GL_FALSE, glm::value_ptr(MVPMatrix));
+
             glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, (GLsizei)vertices.size());
             glBindVertexArray(0);

@@ -5,6 +5,7 @@
 #include <glimac/Program.hpp>
 #include <glimac/Sphere.hpp>
 #include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
+#include <glimac/Mesh.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -103,30 +104,7 @@ int main(int argc, char* argv[])
 
     glimac::Sphere sphere(1, 16, 32);
 
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(glimac::ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    const GLuint VERTEX_ATTRIB_POS = 0;
-    const GLuint VERTEX_ATTRIB_NORMAL = 1;
-    const GLuint VERTEX_ATTRIB_UV = 2;
-
-    glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
-    glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
-    glEnableVertexAttribArray(VERTEX_ATTRIB_UV);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(VERTEX_ATTRIB_POS, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, position));
-    glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, normal));
-    glVertexAttribPointer(VERTEX_ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, texCoords));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glimac::Mesh spehereMesh(sphere.getVertices());
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
@@ -161,9 +139,7 @@ int main(int argc, char* argv[])
 
         glUniformMatrix4fv(uMVPMatrix, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
 
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, sphere.getVertexCount());
-        glBindVertexArray(0);
+        spehereMesh.Draw();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -173,8 +149,6 @@ int main(int argc, char* argv[])
 
     glfwTerminate();
 
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
     return 0;
 }
 

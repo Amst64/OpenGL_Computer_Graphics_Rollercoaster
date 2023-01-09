@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(Rollercoaster)
+project(RollercoasterProject)
 
 # Set the folder where the executables are created
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
@@ -10,7 +10,7 @@ add_subdirectory(glimac)
 
 # Create a target for each TP
 function(setup_project PROJECT_NAME)
-    set(TARGET_NAME ${PROJECT_NAME})
+    set(TARGET_NAME ${PROJECT_NAME}_exe)
     add_executable(${TARGET_NAME})
     target_compile_features(${TARGET_NAME} PRIVATE cxx_std_11)
 

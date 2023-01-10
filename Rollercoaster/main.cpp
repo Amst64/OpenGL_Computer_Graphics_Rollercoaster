@@ -101,11 +101,11 @@ int main(int argc, char* argv[])
     program.use();
 
     glimac::Sphere sphere(1, 16, 32);
-    glimac::Mesh spehereMesh(sphere.getVertices());
+    glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices());
 
     glimac::Cube cube;
     std::cout << "Cube vertices : " << cube.getVertexCount() << std::endl;
-    glimac::Mesh cubeMesh(cube.getVertices());
+    glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices());
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 

@@ -27,6 +27,10 @@ public:
     const std::vector<ShapeVertex> getVertices() const {
         return m_Vertices;
     }
+
+    const std::vector<uint32_t> getIndices() const {
+        return m_Indices;
+    }
     
     // Renvoit le nombre de vertex
     GLsizei getVertexCount() const {
@@ -35,6 +39,7 @@ public:
 
 private:
     std::vector<ShapeVertex> m_Vertices;
+    std::vector<uint32_t> m_Indices;
     GLsizei m_nVertexCount; // Nombre de sommets
 };
     

@@ -8,7 +8,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 # Include glimac
 add_subdirectory(glimac)
 
-# Create a target for each TP
+# Create a target
 function(setup_project PROJECT_NAME)
     set(TARGET_NAME ${PROJECT_NAME}_exe)
     add_executable(${TARGET_NAME})

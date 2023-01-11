@@ -55,12 +55,12 @@ void Sphere::build(GLfloat r, GLsizei discLat, GLsizei discLong) {
     // (i, i + 1, i + discLat + 1), (i, i + discLat + 1, i + discLat)
     // avec i sur la bande correspondant à la longitude
     for(GLsizei j = 0; j < discLong; j++) {
-        GLsizei offset = j * discLat;
+        GLsizei offset = j * (discLat+1);
         for(GLsizei i = 0; i < discLat; i++) {
             m_Vertices.push_back(data[offset + i]);
             m_Vertices.push_back(data[offset + (i + 1)]);
-            m_Vertices.push_back(data[offset + discLat + 1 + i]);
-            m_Vertices.push_back(data[offset + i + discLat]);
+            m_Vertices.push_back(data[offset + discLat + 1 + (i+1)]);
+            m_Vertices.push_back(data[offset + i + discLat + 1]);
 
             m_Indices.push_back((uint32_t)idx);
             m_Indices.push_back((uint32_t)idx+1);

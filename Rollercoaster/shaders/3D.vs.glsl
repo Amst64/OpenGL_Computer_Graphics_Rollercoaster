@@ -9,6 +9,7 @@ uniform mat4 uMVPMatrix;
 uniform mat4 uNormalMatrix;
 
 out vec3 vNormal;
+out vec2 vUVCoords;
 
 
 void main()
@@ -18,6 +19,7 @@ void main()
     vec4 vertexNormal = vec4(aVertexNormal, 0);
 
     vNormal = vec3(uNormalMatrix * vertexNormal);
+    vUVCoords = aVertexTexCoords;
 
     gl_Position = uMVPMatrix * vertexPosition;
 }

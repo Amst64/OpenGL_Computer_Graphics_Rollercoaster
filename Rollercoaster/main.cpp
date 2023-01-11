@@ -7,6 +7,7 @@
 #include <glimac/Cube.hpp>
 #include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
 #include <glimac/Mesh.hpp>
+#include <glimac/Image.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -95,10 +96,31 @@ int main(int argc, char* argv[])
     glfwSetCursorPosCallback(window, &cursor_position_callback);
     glfwSetWindowSizeCallback(window, &size_callback);
 
-    //chargement des shaders
+
     glimac::FilePath applicationPath(argv[0]);
+
+    //load image
+    glimac::FilePath imagePath(applicationPath.dirPath() + "assets/textures/EarthMap.jpg");
+    std::unique_ptr<glimac::Image> image = glimac::loadImage(imagePath);
+    if (image == NULL) {
+        std::cout << "image not found\n"
+            << std::endl;
+        return -1;
+    }
+
+    //load shaders
     glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
     program.use();
+
+    GLuint texture;
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->getWidth(), image->getHeight(), 0, GL_RGBA, GL_FLOAT, image->getPixels());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glimac::Sphere sphere(1, 16, 32);
     glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices());
@@ -121,6 +143,9 @@ int main(int argc, char* argv[])
 
     GLuint programID = program.getGLId();
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glUniform1i(glGetUniformLocation(programID, "uTexture"), 0);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
 

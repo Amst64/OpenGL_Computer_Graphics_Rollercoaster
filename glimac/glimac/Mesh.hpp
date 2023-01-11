@@ -1,4 +1,6 @@
 #pragma once
+#include "Texture.hpp"
+
 
 namespace glimac {
 	class Mesh {
@@ -41,16 +43,30 @@ namespace glimac {
 	public:
 		std::vector<glimac::ShapeVertex> vertices;
         std::vector<uint32_t> indices;
+        std::vector<glimac::Texture> textures;
 
-		Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices) : vertices{ _vertices }, indices{_indices}
+		Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::Texture> _textures) : vertices{ _vertices }, 
+            indices{_indices}, textures{_textures}
         {
             setupMesh();
         }
 
-		void Draw(GLuint programID, glm::mat4 MVPMatrix, glm::mat4 NormalMatrix)
+		void Draw(glimac::Program& program, glm::mat4 MVPMatrix, glm::mat4 NormalMatrix)
         {
+            program.use();
+            GLuint programID = program.getGLId();
+
             glUniformMatrix4fv(glGetUniformLocation(programID, "uNormalMatrix"), 1, GL_FALSE, glm::value_ptr(NormalMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uMVPMatrix"), 1, GL_FALSE, glm::value_ptr(MVPMatrix));
+
+            for (unsigned int i = 0; i < textures.size(); i++)
+            {
+                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                textures[i].assignTexUnit(program, "uTexture", i);
+                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+            }
+            glActiveTexture(GL_TEXTURE0);
 
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);

@@ -8,6 +8,7 @@
 #include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
 #include <glimac/Mesh.hpp>
 #include <glimac/Image.hpp>
+#include <glimac/Texture.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -108,26 +109,28 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    //load image
+    glimac::FilePath imagePath2(applicationPath.dirPath() + "assets/textures/container2.png");
+    std::unique_ptr<glimac::Image> image2 = glimac::loadImage(imagePath2);
+    if (image2 == NULL) {
+        std::cout << "image not found\n"
+            << std::endl;
+        return -1;
+    }
+
     //load shaders
     glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
-    program.use();
 
-    GLuint texture;
-    glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->getWidth(), image->getHeight(), 0, GL_RGBA, GL_FLOAT, image->getPixels());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     glimac::Sphere sphere(1, 16, 32);
-    glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices());
+    std::vector<glimac::Texture> sphereTexture;
+    sphereTexture.push_back(glimac::Texture(image, "no need of type for the moment", 0, GL_RGBA));
+    glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices(), sphereTexture);
 
     glimac::Cube cube;
-    std::cout << "Cube vertices : " << cube.getVertexCount() << std::endl;
-    glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices());
+    std::vector<glimac::Texture> cubeTexture;
+    cubeTexture.push_back(glimac::Texture(image2, "no need of type for the moment", 0, GL_RGBA));
+    glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
@@ -141,11 +144,6 @@ int main(int argc, char* argv[])
 
     float cameraSpeed = 1.5f;
 
-    GLuint programID = program.getGLId();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(programID, "uTexture"), 0);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
 
@@ -163,12 +161,12 @@ int main(int argc, char* argv[])
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         glm::mat4 MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
-        spehereMesh.Draw(programID, MVPMatrix, NormalMatrix);
+        spehereMesh.Draw(program, MVPMatrix, NormalMatrix);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
-        cubeMesh.Draw(programID, MVPMatrix, NormalMatrix);
+        cubeMesh.Draw(program, MVPMatrix, NormalMatrix);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

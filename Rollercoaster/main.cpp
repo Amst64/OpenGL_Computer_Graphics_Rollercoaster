@@ -20,6 +20,8 @@ float mouseLastY;
 
 void moveCameraWithKeyInput(GLFWwindow* window, float speed);
 
+int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac::Texture>& textures);
+
 static void key_callback(GLFWwindow* /*window*/, int /*key*/, int /*scancode*/, int /*action*/, int /*mods*/)
 {
 }
@@ -98,25 +100,7 @@ int main(int argc, char* argv[])
     glfwSetWindowSizeCallback(window, &size_callback);
 
 
-    glimac::FilePath applicationPath(argv[0]);
-
-    //load image
-    glimac::FilePath imagePath(applicationPath.dirPath() + "assets/textures/EarthMap.jpg");
-    std::unique_ptr<glimac::Image> image = glimac::loadImage(imagePath);
-    if (image == NULL) {
-        std::cout << "image not found\n"
-            << std::endl;
-        return -1;
-    }
-
-    //load image
-    glimac::FilePath imagePath2(applicationPath.dirPath() + "assets/textures/container2.png");
-    std::unique_ptr<glimac::Image> image2 = glimac::loadImage(imagePath2);
-    if (image2 == NULL) {
-        std::cout << "image not found\n"
-            << std::endl;
-        return -1;
-    }
+    glimac::FilePath applicationPath(argv[0]); //get application dir
 
     //load shaders
     glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
@@ -124,12 +108,18 @@ int main(int argc, char* argv[])
 
     glimac::Sphere sphere(1, 16, 32);
     std::vector<glimac::Texture> sphereTexture;
-    sphereTexture.push_back(glimac::Texture(image, "no need of type for the moment", 0, GL_RGBA));
+    if(!loadTexture(applicationPath, "EarthMap.jpg", sphereTexture))
+    {
+        return -1;
+    }
     glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices(), sphereTexture);
 
     glimac::Cube cube;
     std::vector<glimac::Texture> cubeTexture;
-    cubeTexture.push_back(glimac::Texture(image2, "no need of type for the moment", 0, GL_RGBA));
+    if (!loadTexture(applicationPath, "container2.png", cubeTexture)) 
+    {
+        return -1;
+    }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
@@ -192,4 +182,17 @@ void moveCameraWithKeyInput(GLFWwindow* window, float speed)
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.moveLeft(-speed);
+}
+
+int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac::Texture>& textures)
+{
+    glimac::FilePath imagePath(dir.dirPath() + "assets/textures/" + imageName);
+    std::unique_ptr<glimac::Image> image = glimac::loadImage(imagePath);
+    if (image == NULL) {
+        std::cout << "image not found\n"
+            << std::endl;
+        return 0;
+    }
+    textures.push_back(glimac::Texture(image, "no need of type for the moment", 0, GL_RGBA));
+    return 1;
 }

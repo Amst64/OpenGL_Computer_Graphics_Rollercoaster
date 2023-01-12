@@ -156,7 +156,11 @@ int main(int argc, char* argv[])
 
         lightPos = glm::vec3(1.5f, glm::cos((float)glfwGetTime()), -3);
 
-        glUniform3fv(glGetUniformLocation(program.getGLId(), "uLightPos"), 1, glm::value_ptr(lightPos));
+        glUniform3fv(glGetUniformLocation(program.getGLId(), "uLight.position"), 1, glm::value_ptr(lightPos));
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.ambient"), 0.1f, 0.1f, 0.1f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.diffuse"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.specular"), 1.0f, 1.0f, 1.0f);
+
         glUniform3fv(glGetUniformLocation(program.getGLId(), "uViewPos"), 1, glm::value_ptr(viewPos));
 
         ModelMatrix = glm::translate(glm::mat4(1), lightPos);
@@ -164,10 +168,22 @@ int main(int argc, char* argv[])
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.Draw(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
+        program.use();
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.ambient"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.diffuse"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.specular"), 0.0f, 0.0f, 0.0f);
+        glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 32.0f);
+
+
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         spehereMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.ambient"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.diffuse"), 1.0f, 1.0f, 1.0f);
+        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.specular"), 0.5f, 0.5f, 0.5f);
+        glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 128.0f);
+        
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);

@@ -123,6 +123,10 @@ int main(int argc, char* argv[])
     {
         return -1;
     }
+    if (!loadTexture(applicationPath, "container2_specular.png", cubeTexture))
+    {
+        return -1;
+    }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
@@ -169,9 +173,6 @@ int main(int argc, char* argv[])
         cubeMesh.Draw(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
         program.use();
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.ambient"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.diffuse"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.specular"), 0.0f, 0.0f, 0.0f);
         glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 32.0f);
 
 
@@ -179,9 +180,6 @@ int main(int argc, char* argv[])
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         spehereMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.ambient"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.diffuse"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uMaterial.specular"), 0.5f, 0.5f, 0.5f);
         glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 128.0f);
         
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));

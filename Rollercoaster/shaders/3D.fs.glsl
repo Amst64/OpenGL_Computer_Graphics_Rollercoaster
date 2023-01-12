@@ -1,9 +1,8 @@
 #version 330 core
 
 struct Material {
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	sampler2D diffuse;
+	sampler2D specular;
 	float shininess;
 };
 
@@ -23,7 +22,6 @@ in vec3 vNormal;
 in vec2 vUVCoords;
 in vec3 vFragPos;
 
-uniform sampler2D uTexture;
 uniform vec3 uViewPos;
 
 out vec3 fFragColor;
@@ -32,19 +30,19 @@ void main() {
 	vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
 	//ambient
-	vec3 ambient = uMaterial.ambient * uLight.ambient;
+	vec3 ambient = vec3(texture(uMaterial.diffuse, vUVCoords)) * uLight.ambient;
 
 	//diffuse
 	vec3 norm = normalize(vNormal);
 	vec3 lightDir = normalize(uLight.position - vFragPos);
 	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = diff * uMaterial.diffuse * uLight.diffuse;
+	vec3 diffuse = diff * vec3(texture(uMaterial.diffuse, vUVCoords)) * uLight.diffuse;
 
 	//specular
 	vec3 viewDir = normalize(uViewPos - vFragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.shininess);
-	vec3 specular = uMaterial.specular * spec * uLight.specular;
+	vec3 specular = vec3(texture(uMaterial.specular, vUVCoords)) * spec * uLight.specular;
 
-	fFragColor = (ambient + diffuse + specular) * vec3(texture(uTexture, vUVCoords));
+	fFragColor = ambient + diffuse + specular;
 }

@@ -61,14 +61,26 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
 
-            for (unsigned int i = 0; i < textures.size(); i++)
+            for(int i = 0; i < textures.size(); i++)
             {
-                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                textures[i].assignTexUnit(program, "uTexture", i);
-                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                if(i == 1)
+                {
+                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                    textures[i].assignTexUnit(program, "uMaterial.specular", i);
+                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                    glActiveTexture(GL_TEXTURE0);
+                }
+                else
+                {
+                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                    textures[i].assignTexUnit(program, "uMaterial.diffuse", i);
+                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                    glActiveTexture(GL_TEXTURE0);
+                }
+                
             }
-            glActiveTexture(GL_TEXTURE0);
 
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);

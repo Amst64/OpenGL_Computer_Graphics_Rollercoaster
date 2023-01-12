@@ -137,6 +137,9 @@ int main(int argc, char* argv[])
 
     float cameraSpeed = 1.5f;
 
+    glm::vec3 lightPos(1.5f, 0, -3);
+    glm::vec3 viewPos;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
 
@@ -149,6 +152,17 @@ int main(int argc, char* argv[])
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
 
         ViewMatrix = camera.getViewMatrix();
+        viewPos = camera.getPosition();
+
+        lightPos = glm::vec3(1.5f, glm::cos((float)glfwGetTime()), -3);
+
+        glUniform3fv(glGetUniformLocation(program.getGLId(), "uLightPos"), 1, glm::value_ptr(lightPos));
+        glUniform3fv(glGetUniformLocation(program.getGLId(), "uViewPos"), 1, glm::value_ptr(viewPos));
+
+        ModelMatrix = glm::translate(glm::mat4(1), lightPos);
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        cubeMesh.Draw(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));

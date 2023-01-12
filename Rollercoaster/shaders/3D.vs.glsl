@@ -12,6 +12,7 @@ uniform mat4 uNormalMatrix;
 
 out vec3 vNormal;
 out vec2 vUVCoords;
+out vec3 vFragPos;
 
 
 void main()
@@ -22,6 +23,7 @@ void main()
 
     vNormal = vec3(uNormalMatrix * vertexNormal);
     vUVCoords = aVertexTexCoords;
+    vFragPos = vec3(uModelMatrix * vertexPosition);
 
     gl_Position = uProjMatrix * uViewMatrix * uModelMatrix * vertexPosition;
 }

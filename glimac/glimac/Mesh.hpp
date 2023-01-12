@@ -51,13 +51,15 @@ namespace glimac {
             setupMesh();
         }
 
-		void Draw(glimac::Program& program, glm::mat4 MVPMatrix, glm::mat4 NormalMatrix)
+		void Draw(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix)
         {
             program.use();
             GLuint programID = program.getGLId();
 
             glUniformMatrix4fv(glGetUniformLocation(programID, "uNormalMatrix"), 1, GL_FALSE, glm::value_ptr(NormalMatrix));
-            glUniformMatrix4fv(glGetUniformLocation(programID, "uMVPMatrix"), 1, GL_FALSE, glm::value_ptr(MVPMatrix));
+            glUniformMatrix4fv(glGetUniformLocation(programID, "uModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+            glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+            glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
 
             for (unsigned int i = 0; i < textures.size(); i++)
             {

@@ -105,6 +105,9 @@ int main(int argc, char* argv[])
     //load shaders
     glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
 
+    //load shaders
+    glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
+
 
     glimac::Sphere sphere(1, 16, 32);
     std::vector<glimac::Texture> sphereTexture;
@@ -141,7 +144,6 @@ int main(int argc, char* argv[])
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        glClearColor(1.000f, 0.992f, 0.735f, 1.000f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
@@ -150,13 +152,11 @@ int main(int argc, char* argv[])
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        glm::mat4 MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
-        spehereMesh.Draw(program, MVPMatrix, NormalMatrix);
+        spehereMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        MVPMatrix = ProjMatrix * ViewMatrix * ModelMatrix;
-        cubeMesh.Draw(program, MVPMatrix, NormalMatrix);
+        cubeMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

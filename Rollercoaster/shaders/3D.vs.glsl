@@ -5,7 +5,9 @@ layout(location = 1) in vec3 aVertexNormal;
 layout(location = 2) in vec2 aVertexTexCoords;
 
 // Matrices de transformations reçues en uniform
-uniform mat4 uMVPMatrix;
+uniform mat4 uModelMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uProjMatrix;
 uniform mat4 uNormalMatrix;
 
 out vec3 vNormal;
@@ -21,5 +23,5 @@ void main()
     vNormal = vec3(uNormalMatrix * vertexNormal);
     vUVCoords = aVertexTexCoords;
 
-    gl_Position = uMVPMatrix * vertexPosition;
+    gl_Position = uProjMatrix * uViewMatrix * uModelMatrix * vertexPosition;
 }

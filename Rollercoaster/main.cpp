@@ -103,7 +103,10 @@ int main(int argc, char* argv[])
     glimac::FilePath applicationPath(argv[0]); //get application dir
 
     //load shaders
-    glimac::Program  program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+    glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+
+    //load shaders
+    glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
 
     //load shaders
     glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
@@ -115,7 +118,7 @@ int main(int argc, char* argv[])
     {
         return -1;
     }
-    glimac::Mesh spehereMesh(sphere.getVertices(), sphere.getIndices(), sphereTexture);
+    glimac::Mesh sphereMesh(sphere.getVertices(), sphere.getIndices(), sphereTexture);
 
     glimac::Cube cube;
     std::vector<glimac::Texture> cubeTexture;
@@ -142,6 +145,9 @@ int main(int argc, char* argv[])
     float cameraSpeed = 1.5f;
 
     glm::vec3 lightPos(1.5f, 0, -3);
+    glm::vec3 lightAmbient(0.1f, 0.1f, 0.1f);
+    glm::vec3 lightDiffuse(1.0f, 1.0f, 1.0f);
+    glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
     glm::vec3 viewPos;
 
     /* Loop until the user closes the window */
@@ -160,31 +166,22 @@ int main(int argc, char* argv[])
 
         lightPos = glm::vec3(1.5f, glm::cos((float)glfwGetTime()), -3);
 
-        glUniform3fv(glGetUniformLocation(program.getGLId(), "uLight.position"), 1, glm::value_ptr(lightPos));
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.ambient"), 0.1f, 0.1f, 0.1f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.diffuse"), 1.0f, 1.0f, 1.0f);
-        glUniform3f(glGetUniformLocation(program.getGLId(), "uLight.specular"), 1.0f, 1.0f, 1.0f);
-
-        glUniform3fv(glGetUniformLocation(program.getGLId(), "uViewPos"), 1, glm::value_ptr(viewPos));
-
         ModelMatrix = glm::translate(glm::mat4(1), lightPos);
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        cubeMesh.Draw(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-
-        program.use();
-        glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 32.0f);
-
+        cubeMesh.SetMatrix(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        cubeMesh.Draw(light_cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 0);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        spehereMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-
-        glUniform1f(glGetUniformLocation(program.getGLId(), "uMaterial.shininess"), 128.0f);
+        sphereMesh.SetMatrix(sphere_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        sphereMesh.Draw(sphere_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
         
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        cubeMesh.Draw(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        cubeMesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 128);
+        
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

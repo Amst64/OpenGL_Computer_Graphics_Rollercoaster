@@ -51,7 +51,7 @@ namespace glimac {
             setupMesh();
         }
 
-		void Draw(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix)
+        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix)
         {
             program.use();
             GLuint programID = program.getGLId();
@@ -60,6 +60,18 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
+        }
+
+		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, glm::vec3 lightAmbient, glm::vec3 lightDiffuse, glm::vec3 lightSpecular, float shininess)
+        {
+            GLuint programID = program.getGLId();
+
+            glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
+            glUniform3fv(glGetUniformLocation(programID, "uLight.position"), 1, glm::value_ptr(lightPosition));
+            glUniform3fv(glGetUniformLocation(programID, "uLight.ambient"), 1, glm::value_ptr(lightAmbient));
+            glUniform3fv(glGetUniformLocation(programID, "uLight.diffuse"), 1, glm::value_ptr(lightDiffuse));
+            glUniform3fv(glGetUniformLocation(programID, "uLight.specular"), 1, glm::value_ptr(lightSpecular));
+            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), 32.0f);
 
             for(int i = 0; i < textures.size(); i++)
             {

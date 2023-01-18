@@ -1,3 +1,5 @@
+#pragma once
+#include<glimac/glm.hpp>
 
 namespace glimac {
 	class Spline {

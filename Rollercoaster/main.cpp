@@ -9,6 +9,8 @@
 #include <glimac/Mesh.hpp>
 #include <glimac/Image.hpp>
 #include <glimac/Texture.hpp>
+#include <glimac/Spline.hpp>
+#include <glimac/Track.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -21,6 +23,8 @@ float mouseLastY;
 void moveCameraWithKeyInput(GLFWwindow* window, float speed);
 
 int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac::Texture>& textures);
+
+std::vector<glimac::Spline> splinesTrack1();
 
 static void key_callback(GLFWwindow* /*window*/, int /*key*/, int /*scancode*/, int /*action*/, int /*mods*/)
 {
@@ -132,6 +136,11 @@ int main(int argc, char* argv[])
     }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
+    glimac::Track track1(splinesTrack1());
+    std::vector<glimac::ShapeVertex> track1Vertices = track1.getTrackVertices();
+    std::vector<uint32_t> track1Indices = track1.getTrackIndices();
+    glimac::Mesh track1Mesh(track1Vertices, track1Indices, cubeTexture);
+
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
     ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
@@ -164,7 +173,7 @@ int main(int argc, char* argv[])
         ViewMatrix = camera.getViewMatrix();
         viewPos = camera.getPosition();
 
-        lightPos = glm::vec3(1.5f, glm::cos((float)glfwGetTime()), -3);
+        lightPos = glm::vec3(glm::sin((float)glfwGetTime()) * 2 + 3, 3, glm::cos((float)glfwGetTime()) * 2 - 5);
 
         ModelMatrix = glm::translate(glm::mat4(1), lightPos);
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
@@ -181,6 +190,11 @@ int main(int argc, char* argv[])
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
         cubeMesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 128);
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        track1Mesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        track1Mesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 128);
         
 
         /* Swap front and back buffers */
@@ -220,4 +234,69 @@ int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac
     }
     textures.push_back(glimac::Texture(image, "no need of type for the moment", 0, GL_RGBA));
     return 1;
+}
+
+std::vector<glimac::Spline> splinesTrack1()
+{
+    glm::vec3 A0(0, 0, 6);
+    glm::vec3 B0(0, 0, 6);
+    glm::vec3 C0(0, 0, 3);
+    glm::vec3 D0(0, 0, 3);
+
+    glm::vec3 A1(0, 0, 3);
+    glm::vec3 B1(0, 0, 3);
+    glm::vec3 C1(0, 0, 0);
+    glm::vec3 D1(0, 0, 0);
+
+    glm::vec3 A2(0, 0, 0);
+    glm::vec3 B2(0.5f, 0, -2);
+    glm::vec3 C2(0.5f, 3, -2);
+    glm::vec3 D2(1, 3, 0);
+
+    glm::vec3 A3(1, 3, 0);
+    glm::vec3 B3(1.5f, 3, 2);
+    glm::vec3 C3(1.5f, 0, 2);
+    glm::vec3 D3(2, 0, 0);
+
+    glm::vec3 A4(2, 0, 0);
+    glm::vec3 B4(2, 0, -4);
+    glm::vec3 C4(6, 0, -4);
+    glm::vec3 D4(6, 0, 0);
+
+    glm::vec3 A5(6, 0, 0);
+    glm::vec3 B5(6, 0, 0);
+    glm::vec3 C5(6, 0, 6);
+    glm::vec3 D5(6, 0, 6);
+
+    glm::vec3 A6(6, 0, 6);
+    glm::vec3 B6(6, 0, 10);
+    glm::vec3 C6(3, 0, 10);
+    glm::vec3 D6(3, 0, 10);
+
+    glm::vec3 A7(3, 0, 10);
+    glm::vec3 B7(0, 0, 10);
+    glm::vec3 C7(0, 0, 8);
+    glm::vec3 D7(0, 0, 6);
+
+    glimac::Spline spline1(A0, B0, C0, D0);
+    glimac::Spline spline2(A1, B1, C1, D1);
+    glimac::Spline spline3(A2, B2, C2, D2);
+    glimac::Spline spline4(A3, B3, C3, D3);
+    glimac::Spline spline5(A4, B4, C4, D4);
+    glimac::Spline spline6(A5, B5, C5, D5);
+    glimac::Spline spline7(A6, B6, C6, D6);
+    glimac::Spline spline8(A7, B7, C7, D7);
+
+    std::vector<glimac::Spline> splines;
+
+    splines.push_back(spline1);
+    splines.push_back(spline2);
+    splines.push_back(spline3);
+    splines.push_back(spline4);
+    splines.push_back(spline5);
+    splines.push_back(spline6);
+    splines.push_back(spline7);
+    splines.push_back(spline8);
+
+    return splines;
 }

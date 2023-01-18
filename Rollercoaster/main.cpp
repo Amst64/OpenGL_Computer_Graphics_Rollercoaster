@@ -113,6 +113,9 @@ int main(int argc, char* argv[])
     glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
 
     //load shaders
+    glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+
+    //load shaders
     glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
 
 
@@ -139,7 +142,16 @@ int main(int argc, char* argv[])
     glimac::Track track1(splinesTrack1());
     std::vector<glimac::ShapeVertex> track1Vertices = track1.getTrackVertices();
     std::vector<uint32_t> track1Indices = track1.getTrackIndices();
-    glimac::Mesh track1Mesh(track1Vertices, track1Indices, cubeTexture);
+    std::vector<glimac::Texture> track1Texture;
+    if (!loadTexture(applicationPath, "red.png", track1Texture))
+    {
+        return -1;
+    }
+    if (!loadTexture(applicationPath, "red.png", track1Texture))
+    {
+        return -1;
+    }
+    glimac::Mesh track1Mesh(track1Vertices, track1Indices, track1Texture);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
@@ -193,8 +205,8 @@ int main(int argc, char* argv[])
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        track1Mesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        track1Mesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 128);
+        track1Mesh.SetMatrix(track1_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        track1Mesh.Draw(track1_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
         
 
         /* Swap front and back buffers */

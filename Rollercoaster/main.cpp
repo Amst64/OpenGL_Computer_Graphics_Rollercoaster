@@ -248,6 +248,7 @@ std::vector<glimac::Spline> splinesTrack1()
     glm::vec3 C1(0, 0, 0);
     glm::vec3 D1(0, 0, 0);
 
+    //<loop>
     glm::vec3 A2(0, 0, 0);
     glm::vec3 B2(0.5f, 0, -2);
     glm::vec3 C2(0.5f, 3, -2);
@@ -257,6 +258,7 @@ std::vector<glimac::Spline> splinesTrack1()
     glm::vec3 B3(1.5f, 3, 2);
     glm::vec3 C3(1.5f, 0, 2);
     glm::vec3 D3(2, 0, 0);
+    //</loop>
 
     glm::vec3 A4(2, 0, 0);
     glm::vec3 B4(2, 0, -4);
@@ -278,14 +280,14 @@ std::vector<glimac::Spline> splinesTrack1()
     glm::vec3 C7(0, 0, 8);
     glm::vec3 D7(0, 0, 6);
 
-    glimac::Spline spline1(A0, B0, C0, D0);
-    glimac::Spline spline2(A1, B1, C1, D1);
-    glimac::Spline spline3(A2, B2, C2, D2);
-    glimac::Spline spline4(A3, B3, C3, D3);
-    glimac::Spline spline5(A4, B4, C4, D4);
-    glimac::Spline spline6(A5, B5, C5, D5);
-    glimac::Spline spline7(A6, B6, C6, D6);
-    glimac::Spline spline8(A7, B7, C7, D7);
+    glimac::Spline spline1(A0, B0, C0, D0, false);
+    glimac::Spline spline2(A1, B1, C1, D1, false);
+    glimac::Spline spline3(A2, B2, C2, D2, true);
+    glimac::Spline spline4(A3, B3, C3, D3, true);
+    glimac::Spline spline5(A4, B4, C4, D4, false);
+    glimac::Spline spline6(A5, B5, C5, D5, false);
+    glimac::Spline spline7(A6, B6, C6, D6, false);
+    glimac::Spline spline8(A7, B7, C7, D7, false);
 
     std::vector<glimac::Spline> splines;
 

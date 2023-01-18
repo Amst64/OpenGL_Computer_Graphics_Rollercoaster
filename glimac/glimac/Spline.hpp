@@ -8,6 +8,8 @@ namespace glimac {
 		glm::vec3 startPivotPoint;
 		glm::vec3 endPivotPoint;
 		glm::vec3 endPoint;
+
+		bool isLoop;
 		
 		float lerp(float a, float b, float t)
 		{
@@ -23,8 +25,8 @@ namespace glimac {
 		}
 
 	public:
-		Spline(glm::vec3 _startPoint, glm::vec3 _startPivotPoint, glm::vec3 _endPivotPoint, glm::vec3 _endPoint)
-			:startPoint{_startPoint}, startPivotPoint{_startPivotPoint}, endPivotPoint{ _endPivotPoint }, endPoint{_endPoint}
+		Spline(glm::vec3 _startPoint, glm::vec3 _startPivotPoint, glm::vec3 _endPivotPoint, glm::vec3 _endPoint, bool _isLoop)
+			:startPoint{_startPoint}, startPivotPoint{_startPivotPoint}, endPivotPoint{ _endPivotPoint }, endPoint{_endPoint}, isLoop{_isLoop}
 		{
 		}
 
@@ -105,9 +107,27 @@ namespace glimac {
 				normal = glm::normalize(glm::cross(tangent, glm::vec3(0, 1, 0)));
 			}else
 			{
-				normal = glm::normalize(glm::cross(tangent, glm::vec3(1, 0, 0)));
+				if(!isLoop)
+				{
+					if (tangent.z > 0)
+					{
+						normal = glm::normalize(glm::cross(tangent, glm::vec3(1, 0, 0)));
+					}
+					else {
+						normal = glm::normalize(glm::cross(tangent, glm::vec3(-1, 0, 0)));
+					}
+				}
+				else
+				{
+					normal = glm::normalize(glm::cross(tangent, glm::vec3(-1, 0, 0)));
+				}
 			}
-			return -normal;
+			if(!isLoop && normal.x == 0 && normal.y == 0)
+			{
+				return glm::vec3(0, 1, 0);
+			}
+
+			return normal;
 		}
 		
 	};

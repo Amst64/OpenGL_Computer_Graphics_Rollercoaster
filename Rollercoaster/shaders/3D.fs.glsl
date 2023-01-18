@@ -44,5 +44,5 @@ void main() {
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.shininess);
 	vec3 specular = vec3(texture(uMaterial.specular, vUVCoords)) * spec * uLight.specular;
 
-	fFragColor = ambient + diffuse + specular;
+	fFragColor = vec3(texture(uMaterial.diffuse, vUVCoords));
 }

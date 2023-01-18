@@ -63,34 +63,30 @@ namespace glimac {
             index += 4;
 
             //right
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i] + (0.5f * directionRight1) + 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i] + (0.5f * directionRight1) - 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] + (0.5f * directionRight2) - 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] + (0.5f * directionRight2) + 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
+            vertices.push_back(glimac::ShapeVertex(splinePosition[i] + 0.5f * directionRight1 + 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
+            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] + 0.5f * directionRight2 + 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
 
             indices.push_back(index);
+            indices.push_back(index - 3);
+            indices.push_back(index - 2);
+            indices.push_back(index);
+            indices.push_back(index - 2);
             indices.push_back(index + 1);
-            indices.push_back(index + 2);
-            indices.push_back(index);
-            indices.push_back(index + 2);
-            indices.push_back(index + 3);
 
-            index += 4;
+            index += 2;
 
             //left
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i] - (0.5f * directionRight1) + 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i] - (0.5f * directionRight1) - 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] - (0.5f * directionRight2) - 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
-            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] - (0.5f * directionRight2) + 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(0, splineRatio[i])));
+            vertices.push_back(glimac::ShapeVertex(splinePosition[i] - 0.5f * directionRight1 - 0.5f * normal1, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
+            vertices.push_back(glimac::ShapeVertex(splinePosition[i + 1] - 0.5f * directionRight2 - 0.5f * normal2, glm::vec3(0, 0, -1), glm::vec2(1, splineRatio[i])));
 
+            indices.push_back(index - 10);
             indices.push_back(index);
             indices.push_back(index + 1);
-            indices.push_back(index + 2);
-            indices.push_back(index);
-            indices.push_back(index + 2);
-            indices.push_back(index + 3);
+            indices.push_back(index - 10);
+            indices.push_back(index + 1);
+            indices.push_back(index - 7);
 
-            index += 4;
+            index += 2;
         }
 	}
 }

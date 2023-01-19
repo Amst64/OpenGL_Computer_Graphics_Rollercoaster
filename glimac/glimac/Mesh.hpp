@@ -67,10 +67,7 @@ namespace glimac {
             GLuint programID = program.getGLId();
 
             glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
-            glUniform3fv(glGetUniformLocation(programID, "uLight.position"), 1, glm::value_ptr(lightPosition));
-            glUniform3fv(glGetUniformLocation(programID, "uLight.ambient"), 1, glm::value_ptr(lightAmbient));
-            glUniform3fv(glGetUniformLocation(programID, "uLight.diffuse"), 1, glm::value_ptr(lightDiffuse));
-            glUniform3fv(glGetUniformLocation(programID, "uLight.specular"), 1, glm::value_ptr(lightSpecular));
+            glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), 32.0f);
 
             for(int i = 0; i < textures.size(); i++)

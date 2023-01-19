@@ -22,7 +22,7 @@ in vec3 vFragPos;
 
 uniform Material uMaterial;
 
-uniform PointLight uLight;
+uniform PointLight uPointLight;
 uniform DirLight uDirLight;
 
 out vec3 fFragColor;
@@ -35,8 +35,10 @@ vec3 blinnPhong()
     vec3 halfVector = normalize(wo + LightDir);
 
     vec3 LightIntensity = normalize(vec3(1, 1, 1));
+    
+    float ambientValue = 0.1;
 
-    vec3 color = LightIntensity * (vec3(texture(uMaterial.Kd, vUVCoords)) * max(dot(LightDir, vNormal), 0.0) + vec3(texture(uMaterial.Ks, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
+    vec3 color = LightIntensity * (vec3(texture(uMaterial.Kd, vUVCoords)) * ambientValue + vec3(texture(uMaterial.Kd, vUVCoords)) * max(dot(LightDir, vNormal), 0.0) + vec3(texture(uMaterial.Ks, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
 
     return color;
 }
@@ -45,12 +47,12 @@ vec3 blinnPhongPointLight()
 {
     vec3 intensity = vec3(1, 0, 1);
     vec3 wo = normalize(-vFragPos);
-    vec3 wi = normalize(uLight.position - vFragPos);
+    vec3 wi = normalize(uPointLight.position - vFragPos);
     vec3 halfVector = normalize(wo + wi);
 
     vec3 LightIntensity = normalize(intensity);
 
-    vec3 color = (LightIntensity / (pow(distance(vFragPos, uLight.position), 2))) * (vec3(texture(uMaterial.Kd, vUVCoords)) * max(dot(wi, vNormal), 0.0) + vec3(texture(uMaterial.Ks, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
+    vec3 color = (LightIntensity / (pow(distance(vFragPos, uPointLight.position), 2))) * (vec3(texture(uMaterial.Kd, vUVCoords)) * max(dot(wi, vNormal), 0.0) + vec3(texture(uMaterial.Ks, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
 
     return color;
 }

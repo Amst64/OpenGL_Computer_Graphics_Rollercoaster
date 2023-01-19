@@ -79,7 +79,7 @@ namespace glimac {
                 {
                     glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
                     glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    textures[i].assignTexUnit(program, "uMaterial.specular", i);
+                    textures[i].assignTexUnit(program, "uMaterial.Ks", i);
                     glBindTexture(GL_TEXTURE_2D, textures[i].ID);
                     glActiveTexture(GL_TEXTURE0);
                 }
@@ -87,7 +87,7 @@ namespace glimac {
                 {
                     glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
                     glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    textures[i].assignTexUnit(program, "uMaterial.diffuse", i);
+                    textures[i].assignTexUnit(program, "uMaterial.Kd", i);
                     glBindTexture(GL_TEXTURE_2D, textures[i].ID);
                     glActiveTexture(GL_TEXTURE0);
                 }

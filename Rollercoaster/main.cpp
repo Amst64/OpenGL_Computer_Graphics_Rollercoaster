@@ -107,13 +107,13 @@ int main(int argc, char* argv[])
     glimac::FilePath applicationPath(argv[0]); //get application dir
 
     //load shaders
-    glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+    glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
 
     //load shaders
-    glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+    glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
 
     //load shaders
-    glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/3D.fs.glsl");
+    glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
 
     //load shaders
     glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
         ViewMatrix = camera.getViewMatrix();
         viewPos = camera.getPosition();
 
-        lightPos = glm::vec3(glm::sin((float)glfwGetTime()) * 2 + 3, 3, glm::cos((float)glfwGetTime()) * 2 - 5);
+        lightPos = glm::vec3(glm::sin((float)glfwGetTime()) + 3, 1, glm::cos((float)glfwGetTime())- 5);
 
         ModelMatrix = glm::translate(glm::mat4(1), lightPos);
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        cubeMesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 128);
+        cubeMesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));

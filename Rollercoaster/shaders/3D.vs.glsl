@@ -14,7 +14,6 @@ out vec3 vNormal;
 out vec2 vUVCoords;
 out vec3 vFragPos;
 
-
 void main()
 {
     // Passage en coordonnées homogènes

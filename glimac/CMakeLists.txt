@@ -16,3 +16,6 @@ target_link_libraries(glimac PUBLIC glad)
 # ---Add glm---
 add_subdirectory(third-party/glm)
 target_link_libraries(glimac PUBLIC glm)
+# ---Add Assimp---
+add_subdirectory(third-party/assimp)
+target_link_libraries(glimac PUBLIC assimp)

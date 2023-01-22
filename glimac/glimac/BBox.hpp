@@ -67,25 +67,25 @@ inline const BBox3f intersect( const BBox3f& a, const BBox3f& b, const BBox3f& c
 
 /*! tests if bounding boxes (and points) are disjoint (empty intersection) */
 inline bool disjoint( const BBox3f& a, const BBox3f& b )
-{ const glm::vec3 d = glm::min(a.upper, b.upper) - glm::max(a.lower, b.lower); for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a.upper, b.upper) - glm::max(a.lower, b.lower); for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
 inline bool disjoint( const BBox3f& a, const  glm::vec3& b )
-{ const glm::vec3 d = glm::min(a.upper, b)       - glm::max(a.lower, b);       for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a.upper, b)       - glm::max(a.lower, b);       for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
 inline bool disjoint( const  glm::vec3& a, const BBox3f& b )
-{ const glm::vec3 d = glm::min(a, b.upper)       - glm::max(a, b.lower);       for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a, b.upper)       - glm::max(a, b.lower);       for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return true; return false; }
 
 /*! tests if bounding boxes (and points) are conjoint (non-empty intersection) */
 inline bool conjoint( const BBox3f& a, const BBox3f& b )
-{ const glm::vec3 d = glm::min(a.upper, b.upper) - glm::max(a.lower, b.lower); for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a.upper, b.upper) - glm::max(a.lower, b.lower); for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
 inline bool conjoint( const BBox3f& a, const  glm::vec3& b )
-{ const glm::vec3 d = glm::min(a.upper, b)       - glm::max(a.lower, b);       for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a.upper, b)       - glm::max(a.lower, b);       for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
 inline bool conjoint( const  glm::vec3& a, const BBox3f& b )
-{ const glm::vec3 d = glm::min(a, b.upper)       - glm::max(a, b.lower);       for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
+{ const glm::vec3 d = (glm::vec3)glm::min(a, b.upper)       - glm::max(a, b.lower);       for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( d[i] < 0.f ) return false; return true; }
 
 /*! subset relation */
 inline bool subset( const BBox3f& a, const BBox3f& b )
 {
-  for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( a.lower[i]*1.00001f < b.lower[i] ) return false;
-  for ( size_t i = 0 ; i < BBox3f::dim ; i++ ) if ( a.upper[i] > b.upper[i]*1.00001f ) return false;
+  for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( a.lower[i]*1.00001f < b.lower[i] ) return false;
+  for ( int i = 0 ; i < BBox3f::dim ; i++ ) if ( a.upper[i] > b.upper[i]*1.00001f ) return false;
   return true;
 }
 

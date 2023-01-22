@@ -44,9 +44,16 @@ namespace glimac {
 		std::vector<glimac::ShapeVertex> vertices;
         std::vector<uint32_t> indices;
         std::vector<glimac::Texture> textures;
+        std::vector<glimac::ModelTexture> modelTextures;
 
 		Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::Texture> _textures) : vertices{ _vertices }, 
             indices{_indices}, textures{_textures}
+        {
+            setupMesh();
+        }
+
+        Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::ModelTexture> _modelTextures) : vertices{ _vertices },
+            indices{ _indices }, modelTextures{ _modelTextures }
         {
             setupMesh();
         }
@@ -62,34 +69,60 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
         }
 
-		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, glm::vec3 lightAmbient, glm::vec3 lightDiffuse, glm::vec3 lightSpecular, float shininess)
+		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
         {
             GLuint programID = program.getGLId();
 
             glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
             glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
-            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), 32.0f);
+            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
 
-            for(int i = 0; i < textures.size(); i++)
+            unsigned int diffuseNr = 1;
+            unsigned int specularNr = 1;
+            for (unsigned int i = 0; i < textures.size(); i++)
             {
-                if(i == 1)
-                {
-                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    textures[i].assignTexUnit(program, "uMaterial.Ks", i);
-                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    glActiveTexture(GL_TEXTURE0);
-                }
-                else
-                {
-                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    textures[i].assignTexUnit(program, "uMaterial.Kd", i);
-                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
-                    glActiveTexture(GL_TEXTURE0);
-                }
-                
+                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                // retrieve texture number (the N in diffuse_textureN)
+                std::string number;
+                std::string name = textures[i].type;
+                if (name == "texture_diffuse")
+                    number = std::to_string(diffuseNr++);
+                else if (name == "texture_specular")
+                    number = std::to_string(specularNr++);
+                textures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
+                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
             }
+            glActiveTexture(GL_TEXTURE0);
+
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+
+        void DrawModel(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
+        {
+            GLuint programID = program.getGLId();
+
+            glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
+            glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
+            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
+
+            unsigned int diffuseNr = 1;
+            unsigned int specularNr = 1;
+            for (unsigned int i = 0; i < modelTextures.size(); i++)
+            {
+                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                // retrieve texture number (the N in diffuse_textureN)
+                std::string number;
+                std::string name = modelTextures[i].type;
+                if (name == "texture_diffuse")
+                    number = std::to_string(diffuseNr++);
+                else if (name == "texture_specular")
+                    number = std::to_string(specularNr++);
+                modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
+                glBindTexture(GL_TEXTURE_2D, modelTextures[i].ID);
+            }
+            glActiveTexture(GL_TEXTURE0);
 
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);

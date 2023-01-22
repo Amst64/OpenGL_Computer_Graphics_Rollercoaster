@@ -11,6 +11,7 @@
 #include <glimac/Texture.hpp>
 #include <glimac/Spline.hpp>
 #include <glimac/Track.hpp>
+#include <glimac/Model.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -22,7 +23,7 @@ float mouseLastY;
 
 void moveCameraWithKeyInput(GLFWwindow* window, float speed);
 
-int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac::Texture>& textures);
+bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures);
 
 std::vector<glimac::Spline> splinesTrack1();
 
@@ -118,10 +119,16 @@ int main(int argc, char* argv[])
     //load shaders
     glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
 
+    //load shaders
+    glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
+
+    //glimac::Geometry testGeo;
+    
+
 
     glimac::Sphere sphere(1, 16, 32);
     std::vector<glimac::Texture> sphereTexture;
-    if(!loadTexture(applicationPath, "EarthMap.jpg", sphereTexture))
+    if(!loadTexture(applicationPath, "EarthMap.jpg", "texture_diffuse", sphereTexture))
     {
         return -1;
     }
@@ -129,29 +136,34 @@ int main(int argc, char* argv[])
 
     glimac::Cube cube;
     std::vector<glimac::Texture> cubeTexture;
-    if (!loadTexture(applicationPath, "container2.png", cubeTexture)) 
+    if (!loadTexture(applicationPath, "container2.png", "texture_diffuse", cubeTexture)) 
     {
         return -1;
     }
-    if (!loadTexture(applicationPath, "container2_specular.png", cubeTexture))
+    if (!loadTexture(applicationPath, "container2_specular.png", "texture_specular", cubeTexture))
     {
         return -1;
     }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
+
     glimac::Track track1(splinesTrack1());
     std::vector<glimac::ShapeVertex> track1Vertices = track1.getTrackVertices();
     std::vector<uint32_t> track1Indices = track1.getTrackIndices();
     std::vector<glimac::Texture> track1Texture;
-    if (!loadTexture(applicationPath, "red.png", track1Texture))
+    if (!loadTexture(applicationPath, "red.png", "texture_diffuse", track1Texture))
     {
         return -1;
     }
-    if (!loadTexture(applicationPath, "red.png", track1Texture))
+    if (!loadTexture(applicationPath, "red.png", "texture_specular", track1Texture))
     {
         return -1;
     }
     glimac::Mesh track1Mesh(track1Vertices, track1Indices, track1Texture);
+
+
+    glimac::Model modelTest(applicationPath.dirPath() + "assets/models/backpack/backpack.obj");
+
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
 
@@ -191,22 +203,30 @@ int main(int argc, char* argv[])
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.SetMatrix(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        cubeMesh.Draw(light_cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 0);
+        cubeMesh.Draw(light_cube_program, viewPos, lightPos, 0);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         sphereMesh.SetMatrix(sphere_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        sphereMesh.Draw(sphere_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
+        sphereMesh.Draw(sphere_program, viewPos, lightPos, 32);
         
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        cubeMesh.Draw(cube_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
+        cubeMesh.Draw(cube_program, viewPos, lightPos, 32);
+
+        
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         track1Mesh.SetMatrix(track1_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        track1Mesh.Draw(track1_program, viewPos, lightPos, lightAmbient, lightDiffuse, lightSpecular, 32);
+        track1Mesh.Draw(track1_program, viewPos, lightPos, 32);
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3, 0, -6));
+        //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); pink model
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        modelTest.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        modelTest.Draw(model_program, viewPos, lightPos, 32);
         
 
         /* Swap front and back buffers */
@@ -235,17 +255,26 @@ void moveCameraWithKeyInput(GLFWwindow* window, float speed)
         camera.moveLeft(-speed);
 }
 
-int loadTexture(glimac::FilePath& dir, const char* imageName, std::vector<glimac::Texture>& textures)
+bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures)
 {
     glimac::FilePath imagePath(dir.dirPath() + "assets/textures/" + imageName);
     std::unique_ptr<glimac::Image> image = glimac::loadImage(imagePath);
     if (image == NULL) {
         std::cout << "image not found\n"
             << std::endl;
-        return 0;
+        return false;
     }
-    textures.push_back(glimac::Texture(image, "no need of type for the moment", 0, GL_RGBA));
-    return 1;
+    GLenum textureUnit;
+    if(type == "texture_diffuse")
+    {
+        textureUnit = GL_TEXTURE0;
+    }
+    else if(type == "texture_specular")
+    {
+        textureUnit = GL_TEXTURE1;
+    }
+    textures.push_back(glimac::Texture(image, type, textureUnit, GL_RGBA));
+    return true;
 }
 
 std::vector<glimac::Spline> splinesTrack1()

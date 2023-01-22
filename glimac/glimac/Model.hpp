@@ -29,7 +29,7 @@ namespace glimac
         void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
         {
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].DrawModel(program, viewPosition, lightPosition, shininess);
+                meshes[i].Draw(program, viewPosition, lightPosition, shininess, true);
         }
 
     private:

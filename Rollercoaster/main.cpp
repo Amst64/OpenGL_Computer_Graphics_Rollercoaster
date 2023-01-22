@@ -3,8 +3,11 @@
 #include <glad/glad.h>
 #include <glimac/FilePath.hpp>
 #include <glimac/Program.hpp>
+
 #include <glimac/Sphere.hpp>
 #include <glimac/Cube.hpp>
+#include <glimac/Quad.hpp>
+
 #include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
 #include <glimac/Mesh.hpp>
 #include <glimac/Image.hpp>
@@ -108,7 +111,7 @@ int main(int argc, char* argv[])
     glimac::FilePath applicationPath(argv[0]); //get application dir
 
     //load shaders
-    glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
+    glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
 
     //load shaders
     glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
@@ -145,6 +148,9 @@ int main(int argc, char* argv[])
         return -1;
     }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
+
+    glimac::Quad ground;
+    glimac::Mesh groundMesh(ground.getVertices(), ground.getIndices(), cubeTexture);
 
 
     glimac::Track track1(splinesTrack1());
@@ -211,11 +217,10 @@ int main(int argc, char* argv[])
         sphereMesh.Draw(sphere_program, viewPos, lightPos, 32);
         
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
+        //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(2.0f, 2.0f, 2.0f));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
         cubeMesh.Draw(cube_program, viewPos, lightPos, 32);
-
-        
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
@@ -227,6 +232,12 @@ int main(int argc, char* argv[])
         NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
         modelTest.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
         modelTest.Draw(model_program, viewPos, lightPos, 32);
+
+        /*ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0.0f, -3));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5.0f, 0.0f, 5.0f));
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        groundMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+        groundMesh.Draw(cube_program, viewPos, lightPos, 32);*/
         
 
         /* Swap front and back buffers */

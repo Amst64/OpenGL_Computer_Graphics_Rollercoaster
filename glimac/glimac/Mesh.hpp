@@ -69,64 +69,61 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
         }
 
-		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
+		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess, bool isImportedModel = false)
         {
             GLuint programID = program.getGLId();
 
             glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
             glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
+            glUniform3f(glGetUniformLocation(programID, "uDirLight.direction"), -0.2f, -1.0f, -0.3f);
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
 
             unsigned int diffuseNr = 1;
             unsigned int specularNr = 1;
-            for (unsigned int i = 0; i < textures.size(); i++)
+
+            if(isImportedModel)
             {
-                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-                // retrieve texture number (the N in diffuse_textureN)
-                std::string number;
-                std::string name = textures[i].type;
-                if (name == "texture_diffuse")
-                    number = std::to_string(diffuseNr++);
-                else if (name == "texture_specular")
-                    number = std::to_string(specularNr++);
-                textures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
-                glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                
+                for (unsigned int i = 0; i < modelTextures.size(); i++)
+                {
+                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                    // retrieve texture number (the N in diffuse_textureN)
+                    std::string number;
+                    std::string name = modelTextures[i].type;
+                    if (name == "texture_diffuse")
+                        number = std::to_string(diffuseNr++);
+                    else if (name == "texture_specular")
+                        number = std::to_string(specularNr++);
+                    modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
+                    glBindTexture(GL_TEXTURE_2D, modelTextures[i].ID);
+                }
+                glActiveTexture(GL_TEXTURE0);
+
+                glBindVertexArray(VAO);
+                glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
             }
-            glActiveTexture(GL_TEXTURE0);
-
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-        }
-
-        void DrawModel(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
-        {
-            GLuint programID = program.getGLId();
-
-            glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
-            glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
-            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
-
-            unsigned int diffuseNr = 1;
-            unsigned int specularNr = 1;
-            for (unsigned int i = 0; i < modelTextures.size(); i++)
+            else
             {
-                glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-                // retrieve texture number (the N in diffuse_textureN)
-                std::string number;
-                std::string name = modelTextures[i].type;
-                if (name == "texture_diffuse")
-                    number = std::to_string(diffuseNr++);
-                else if (name == "texture_specular")
-                    number = std::to_string(specularNr++);
-                modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
-                glBindTexture(GL_TEXTURE_2D, modelTextures[i].ID);
-            }
-            glActiveTexture(GL_TEXTURE0);
+                for (unsigned int i = 0; i < textures.size(); i++)
+                {
+                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                    // retrieve texture number (the N in diffuse_textureN)
+                    std::string number;
+                    std::string name = textures[i].type;
+                    if (name == "texture_diffuse")
+                        number = std::to_string(diffuseNr++);
+                    else if (name == "texture_specular")
+                        number = std::to_string(specularNr++);
+                    textures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
+                    glBindTexture(GL_TEXTURE_2D, textures[i].ID);
+                }
+                glActiveTexture(GL_TEXTURE0);
 
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
+                glBindVertexArray(VAO);
+                glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
         }
 	};
 }

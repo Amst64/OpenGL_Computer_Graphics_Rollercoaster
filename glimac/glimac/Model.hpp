@@ -48,7 +48,12 @@ namespace glimac
                 std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
                 return;
             }
+
             directory = path.substr(0, path.find_last_of("\\"));
+            if(directory == path)
+            {
+                directory = path.substr(0, path.find_last_of("/"));
+            }
             std::cout << "directory : " << directory << std::endl;
             processNode(scene->mRootNode, scene);
 		}
@@ -110,7 +115,7 @@ namespace glimac
                     indices.push_back(face.mIndices[j]);
             }
 
-            if (mesh->mMaterialIndex >= 0)
+            if (mesh->mMaterialIndex != 0)
             {
                 aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
                 std::vector<glimac::ModelTexture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
@@ -155,6 +160,7 @@ namespace glimac
 
         unsigned int TextureFromFile(const char* path, const std::string& directory, aiTextureType type, bool gamma = false)
         {
+            gamma = !gamma; //delete this line if using gamma
             std::string filename = std::string(path);
             filename = directory + '/' + filename;
             if(type == aiTextureType_DIFFUSE)

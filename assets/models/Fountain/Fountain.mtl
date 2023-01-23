@@ -1,0 +1,36 @@
+# Blender MTL File: 'None'
+# Material Count: 3
+
+newmtl Marble
+Ns 94.117650
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Textures\\Marble\\Marble_Carrara_002_COLOR.png
+map_Ks Textures\\Marble\\Marble_Carrara_002_DISP.png
+
+newmtl Material.001
+Ns 94.117650
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Textures\\Grass\\1_green_grass_texture-seamless.jpg
+map_Ks Textures\\Grass\\1_green_grass_texture_seamless_specular.jpg
+
+newmtl Water
+Ns 94.117650
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -20,16 +20,16 @@ namespace glimac
             loadOBJ(filepath.c_str());
         }
 
-        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix)
+        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix, std::vector<glm::vec3> lightsPosition)
         {
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].SetMatrix(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
+                meshes[i].SetMatrix(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         }
 
-        void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess)
+        void Draw(glimac::Program& program, float shininess)
         {
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].Draw(program, viewPosition, lightPosition, shininess, true);
+                meshes[i].Draw(program, shininess, true);
         }
 
     private:
@@ -41,7 +41,7 @@ namespace glimac
 		void loadOBJ(std::string path)
 		{
             Assimp::Importer import;
-            const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate);
+            const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             {
@@ -194,7 +194,6 @@ namespace glimac
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glActiveTexture(GL_TEXTURE0);
 
                 stbi_image_free(data);
             }

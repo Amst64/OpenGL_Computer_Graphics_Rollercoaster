@@ -58,7 +58,7 @@ namespace glimac {
             setupMesh();
         }
 
-        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix)
+        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix, std::vector<glm::vec3> lightsPosition)
         {
             program.use();
             GLuint programID = program.getGLId();
@@ -67,15 +67,26 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
+
+            glm::vec3 lightPos;
+            glm::vec3 lightDir = ViewMatrix * glm::vec4(-0.2f, -1.0f, -0.3f, 0.0f);
+
+            for (GLuint i = 0; i < lightsPosition.size(); i++)
+            {
+                lightPos = ViewMatrix * glm::vec4(lightsPosition[i], 1);
+                std::string number = std::to_string(i);
+
+
+                glUniform3fv(glGetUniformLocation(programID, ("uPointLights[" + number + "].position").c_str()), 1, glm::value_ptr(lightPos));
+                glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.937f, 0.752f, 0.439f);
+            }
+            glUniform3fv(glGetUniformLocation(programID, "uDirLight.direction"), 1 , glm::value_ptr(lightDir));
         }
 
-		void Draw(glimac::Program& program, glm::vec3 viewPosition, glm::vec3 lightPosition, float shininess, bool isImportedModel = false)
+		void Draw(glimac::Program& program, float shininess, bool isImportedModel = false)
         {
             GLuint programID = program.getGLId();
-
-            glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPosition));
-            glUniform3fv(glGetUniformLocation(programID, "uPointLight.position"), 1, glm::value_ptr(lightPosition));
-            glUniform3f(glGetUniformLocation(programID, "uDirLight.direction"), -0.2f, -1.0f, -0.3f);
+            
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
 
             unsigned int diffuseNr = 1;

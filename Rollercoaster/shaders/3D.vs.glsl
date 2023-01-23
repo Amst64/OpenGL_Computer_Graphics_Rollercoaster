@@ -22,7 +22,7 @@ void main()
 
     vNormal = vec3(uNormalMatrix * vertexNormal);
     vUVCoords = aVertexTexCoords;
-    vFragPos = vec3(uModelMatrix * vertexPosition);
+    vFragPos = vec3(uViewMatrix * uModelMatrix * vertexPosition);
 
     gl_Position = uProjMatrix * uViewMatrix * uModelMatrix * vertexPosition;
 }

@@ -26,7 +26,7 @@ float mouseLastY;
 
 void moveCameraWithKeyInput(GLFWwindow* window, float speed);
 
-bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures);
+bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures, int number);
 
 std::vector<glimac::Spline> splinesTrack1();
 
@@ -112,18 +112,14 @@ int main(int argc, char* argv[])
 
     //load shaders
     glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    //glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    //glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
+    glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  ground_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
 
-    //load shaders
-    glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
-
-    //load shaders
-    glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
-
-    //load shaders
-    glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
-
-    //load shaders
-    glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/Blinn-Phong.fs.glsl");
 
     //glimac::Geometry testGeo;
     
@@ -131,7 +127,7 @@ int main(int argc, char* argv[])
 
     glimac::Sphere sphere(1, 16, 32);
     std::vector<glimac::Texture> sphereTexture;
-    if(!loadTexture(applicationPath, "EarthMap.jpg", "texture_diffuse", sphereTexture))
+    if(!loadTexture(applicationPath, "EarthMap.jpg", "texture_diffuse", sphereTexture, 0))
     {
         return -1;
     }
@@ -139,39 +135,45 @@ int main(int argc, char* argv[])
 
     glimac::Cube cube;
     std::vector<glimac::Texture> cubeTexture;
-    if (!loadTexture(applicationPath, "container2.png", "texture_diffuse", cubeTexture)) 
+    if (!loadTexture(applicationPath, "container2.png", "texture_diffuse", cubeTexture, 0)) 
     {
         return -1;
     }
-    if (!loadTexture(applicationPath, "container2_specular.png", "texture_specular", cubeTexture))
+    if (!loadTexture(applicationPath, "container2_specular.png", "texture_specular", cubeTexture, 1))
     {
         return -1;
     }
     glimac::Mesh cubeMesh(cube.getVertices(), cube.getIndices(), cubeTexture);
 
     glimac::Quad ground;
-    glimac::Mesh groundMesh(ground.getVertices(), ground.getIndices(), cubeTexture);
+    std::vector<glimac::Texture> groundTexture;
+    if (!loadTexture(applicationPath, "ground.png", "texture_diffuse", groundTexture, 0))
+    {
+        return -1;
+    }
+    glimac::Mesh groundMesh(ground.getVertices(), ground.getIndices(), groundTexture);
 
 
     glimac::Track track1(splinesTrack1());
     std::vector<glimac::ShapeVertex> track1Vertices = track1.getTrackVertices();
     std::vector<uint32_t> track1Indices = track1.getTrackIndices();
     std::vector<glimac::Texture> track1Texture;
-    if (!loadTexture(applicationPath, "red.png", "texture_diffuse", track1Texture))
+    if (!loadTexture(applicationPath, "red.png", "texture_diffuse", track1Texture, 0))
     {
         return -1;
     }
-    if (!loadTexture(applicationPath, "red.png", "texture_specular", track1Texture))
+    if (!loadTexture(applicationPath, "red.png", "texture_specular", track1Texture, 1))
     {
         return -1;
     }
     glimac::Mesh track1Mesh(track1Vertices, track1Indices, track1Texture);
 
 
-    glimac::Model modelTest(applicationPath.dirPath() + "assets/models/backpack/backpack.obj");
+    glimac::Model streetLight(applicationPath.dirPath() + "assets/models/streetlight/streetlight.obj");
+    glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
+    glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
 
-
-    glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, NormalMatrix;
+    glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix;
 
     ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
 
@@ -183,11 +185,12 @@ int main(int argc, char* argv[])
 
     float cameraSpeed = 1.5f;
 
-    glm::vec3 lightPos(1.5f, 0, -3);
-    glm::vec3 lightAmbient(0.1f, 0.1f, 0.1f);
-    glm::vec3 lightDiffuse(1.0f, 1.0f, 1.0f);
-    glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
-    glm::vec3 viewPos;
+    glm::vec3 cube_lightPos(1.8f - 3.6f, 0.0f, -5.5f);
+
+    std::vector<glm::vec3> lightsPosition;
+
+    lightsPosition.push_back(glm::vec3(1.8f, 3.0f, -6.5f));
+    lightsPosition.push_back(glm::vec3(1.8f - 3.6f -5.0f, 3.0f, -6.5f));
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -201,43 +204,109 @@ int main(int argc, char* argv[])
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
 
         ViewMatrix = camera.getViewMatrix();
-        viewPos = camera.getPosition();
 
-        lightPos = glm::vec3(glm::sin((float)glfwGetTime()) + 3, 1, glm::cos((float)glfwGetTime())- 5);
+        //lightPos = glm::vec3(glm::sin((float)glfwGetTime()) + 3, 1, glm::cos((float)glfwGetTime()) * 2- 5);
 
-        ModelMatrix = glm::translate(glm::mat4(1), lightPos);
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        cubeMesh.SetMatrix(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        cubeMesh.Draw(light_cube_program, viewPos, lightPos, 0);
+        /*ModelMatrix = glm::translate(glm::mat4(1), cube_lightPos);
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        cubeMesh.SetMatrix(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        cubeMesh.Draw(light_cube_program, 0);*/
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, -5));
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        sphereMesh.SetMatrix(sphere_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        sphereMesh.Draw(sphere_program, viewPos, lightPos, 32);
+
+        
+
+        /*ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-7, 0, -5));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        sphereMesh.SetMatrix(sphere_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        sphereMesh.Draw(sphere_program, 32);*/
         
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
-        //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(2.0f, 2.0f, 2.0f));
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        cubeMesh.Draw(cube_program, viewPos, lightPos, 32);
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.2f, 1.2f, 1.2f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        cubeMesh.Draw(cube_program, 32);
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, 0, -5));
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        track1Mesh.SetMatrix(track1_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        track1Mesh.Draw(track1_program, viewPos, lightPos, 32);
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, -0.7f, -5));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        track1Mesh.SetMatrix(track1_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        track1Mesh.Draw(track1_program, 32);
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3, 0, -6));
-        //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); pink model
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        modelTest.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        modelTest.Draw(model_program, viewPos, lightPos, 32);
+        glm::vec3 lampePosition = glm::vec3(2.5f, -0.7f, -0.5f);
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x, lampePosition.y, lampePosition.z - 6.0f));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        streetLight.Draw(model_program, 32);
 
-        /*ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0.0f, -3));
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5.0f, 0.0f, 5.0f));
-        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
-        groundMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix);
-        groundMesh.Draw(cube_program, viewPos, lightPos, 32);*/
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x - 3.6f - 5.0f, lampePosition.y, lampePosition.z - 6.0f));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        streetLight.Draw(model_program, 32);
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(1, -0.7f, -5));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        fountain.SetMatrix(fountain_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        fountain.Draw(fountain_program, 32);
+
+
+        for(int i = 0; i < 4; i++)
+        {
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.8f, -0.15f, 2));
+            ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
+            MVMatrix = ViewMatrix * ModelMatrix;
+            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+            wall.Draw(wall_program, 1);
+        }
+        
+        for(int i = 0; i < 5; i++)
+        {
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3 * 2.8f - 1.4f, -0.15f, 0.5f - i * 2.8f));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
+            MVMatrix = ViewMatrix * ModelMatrix;
+            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+            wall.Draw(wall_program, 1);
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.8f, -0.15f, 0.5f - 4 * 2.8f - 1.4f));
+            ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
+            MVMatrix = ViewMatrix * ModelMatrix;
+            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+            wall.Draw(wall_program, 1);
+        }
+        
+
+        for(int i = -15; i < 15; i++)
+        {
+            for(int j = -10; j < 10; j++)
+            {
+                ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-2.5f + j, -0.7f, 0 - i));
+                //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(50.0f, 15.0f, 15.0f));
+                MVMatrix = ViewMatrix * ModelMatrix;
+                NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+                groundMesh.SetMatrix(ground_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+                groundMesh.Draw(ground_program, 1);
+            }
+            
+        }
+        
         
 
         /* Swap front and back buffers */
@@ -266,7 +335,8 @@ void moveCameraWithKeyInput(GLFWwindow* window, float speed)
         camera.moveLeft(-speed);
 }
 
-bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures)
+//number is the index of texture
+bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures, int number)
 {
     glimac::FilePath imagePath(dir.dirPath() + "assets/textures/" + imageName);
     std::unique_ptr<glimac::Image> image = glimac::loadImage(imagePath);
@@ -275,15 +345,7 @@ bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type,
             << std::endl;
         return false;
     }
-    GLenum textureUnit;
-    if(type == "texture_diffuse")
-    {
-        textureUnit = GL_TEXTURE0;
-    }
-    else if(type == "texture_specular")
-    {
-        textureUnit = GL_TEXTURE1;
-    }
+    GLenum textureUnit = GL_TEXTURE0 + number;
     textures.push_back(glimac::Texture(image, type, textureUnit, GL_RGBA));
     return true;
 }

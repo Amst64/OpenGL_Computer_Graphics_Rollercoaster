@@ -15,6 +15,7 @@
 #include <glimac/Spline.hpp>
 #include <glimac/Track.hpp>
 #include <glimac/Model.hpp>
+#include <glimac/Wagon.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
     glimac::Program  cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     //glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
-    //glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
+    glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
     glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  ground_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
@@ -153,8 +154,8 @@ int main(int argc, char* argv[])
     }
     glimac::Mesh groundMesh(ground.getVertices(), ground.getIndices(), groundTexture);
 
-
-    glimac::Track track1(splinesTrack1());
+    std::vector<glimac::Spline> splines = splinesTrack1();
+    glimac::Track track1(splines);
     std::vector<glimac::ShapeVertex> track1Vertices = track1.getTrackVertices();
     std::vector<uint32_t> track1Indices = track1.getTrackIndices();
     std::vector<glimac::Texture> track1Texture;
@@ -173,7 +174,7 @@ int main(int argc, char* argv[])
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
     glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
 
-    glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix;
+    glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
 
     ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
 
@@ -193,6 +194,14 @@ int main(int argc, char* argv[])
     lightsPosition.push_back(glm::vec3(1.8f - 3.6f -5.0f, 3.0f, -6.5f));
 
     /* Loop until the user closes the window */
+    glm::vec3 wagonSplinePos = splines[0].getPosition(0.06f);
+    glm::vec3 wagonSplinePos1 = splines[0].getPosition(0.0f);
+    glm::vec3 wagonPos;
+    glimac::Wagon wagon1;
+    glimac::Wagon wagon2;
+
+    float ratio = 0.06f;
+    int splineIndex = 0;
     while (!glfwWindowShouldClose(window)) {
 
         currentFrame = (float)glfwGetTime();
@@ -207,35 +216,69 @@ int main(int argc, char* argv[])
 
         //lightPos = glm::vec3(glm::sin((float)glfwGetTime()) + 3, 1, glm::cos((float)glfwGetTime()) * 2- 5);
 
-        /*ModelMatrix = glm::translate(glm::mat4(1), cube_lightPos);
+        //std::cout << deltaTime << std::endl;
+
+        
+        
+        if(ratio >= 1 && splineIndex <= splines.size())
+        {
+            ratio = 0;
+            splineIndex += 1;
+        }
+
+        if(splineIndex == splines.size())
+        {
+            splineIndex = 0;
+        }
+        ratio += 1.3f * deltaTime;
+        
+
+        ModelTrackMatrix = glm::translate(glm::mat4(1), glm::vec3(5, -0.7f, -5));
+        MVMatrix = ViewMatrix * ModelTrackMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        track1Mesh.SetMatrix(track1_program, ModelTrackMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        track1Mesh.Draw(track1_program, 32);
+
+        //Wagon
+        ModelMatrix = glm::translate(ModelTrackMatrix, wagonSplinePos + splines[splineIndex].GetCurveNormal(ratio) * 0.5f);
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
-        MVMatrix = ViewMatrix * ModelMatrix;
+        wagonPos = glm::vec3(ModelMatrix[3][0], ModelMatrix[3][1], ModelMatrix[3][2] + 2);
+        wagon1.move(wagonPos, splines[splineIndex].GetCurveTangent(ratio), splines[splineIndex].GetCurveNormal(ratio));
+        WagonMatrix = wagon1.getModelMatrix();
+        WagonMatrix[3][0] = 0;
+        WagonMatrix[3][1] = 0;
+        WagonMatrix[3][2] = 0;
+        WagonMatrix = ModelMatrix * WagonMatrix;
+        MVMatrix = ViewMatrix * WagonMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        cubeMesh.SetMatrix(light_cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        cubeMesh.Draw(light_cube_program, 0);*/
+        cubeMesh.SetMatrix(light_cube_program, WagonMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        cubeMesh.Draw(light_cube_program, 0);
 
-
-        
-
-        /*ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-7, 0, -5));
-        MVMatrix = ViewMatrix * ModelMatrix;
+        ModelMatrix = glm::translate(ModelTrackMatrix, wagonSplinePos1 + splines[splineIndex].GetCurveNormal(ratio) * 0.5f);
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
+        wagonPos = glm::vec3(ModelMatrix[3][0], ModelMatrix[3][1], ModelMatrix[3][2] + 2);
+        wagon2.move(wagonPos, splines[splineIndex].GetCurveTangent(ratio), splines[splineIndex].GetCurveNormal(ratio));
+        WagonMatrix = wagon2.getModelMatrix();
+        WagonMatrix[3][0] = 0;
+        WagonMatrix[3][1] = 0;
+        WagonMatrix[3][2] = 0;
+        WagonMatrix = ModelMatrix * WagonMatrix;
+        MVMatrix = ViewMatrix * WagonMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        sphereMesh.SetMatrix(sphere_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        sphereMesh.Draw(sphere_program, 32);*/
-        
+        cubeMesh.SetMatrix(light_cube_program, WagonMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        cubeMesh.Draw(light_cube_program, 0);
+
+        wagonSplinePos1 = splines[splineIndex].getPosition(ratio - 0.06f);
+        wagonSplinePos = splines[splineIndex].getPosition(ratio);
+        //
+
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.2f, 1.2f, 1.2f));
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         cubeMesh.Draw(cube_program, 32);
-
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(5, -0.7f, -5));
-        MVMatrix = ViewMatrix * ModelMatrix;
-        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        track1Mesh.SetMatrix(track1_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        track1Mesh.Draw(track1_program, 32);
-
+        
         glm::vec3 lampePosition = glm::vec3(2.5f, -0.7f, -0.5f);
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x, lampePosition.y, lampePosition.z - 6.0f));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));

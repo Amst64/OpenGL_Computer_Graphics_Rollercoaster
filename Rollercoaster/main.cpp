@@ -180,6 +180,10 @@ int main(int argc, char* argv[])
 
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     float currentFrame = 0;
     float lastFrame = 0;
     float deltaTime = 0;

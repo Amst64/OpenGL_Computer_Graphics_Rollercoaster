@@ -16,6 +16,7 @@
 #include <glimac/Track.hpp>
 #include <glimac/Model.hpp>
 #include <glimac/Wagon.hpp>
+#include <glimac/Skybox.hpp>
 
 int window_width  = 1280;
 int window_height = 720;
@@ -30,6 +31,9 @@ void moveCameraWithKeyInput(GLFWwindow* window, float speed);
 bool loadTexture(glimac::FilePath& dir, const char* imageName, std::string type, std::vector<glimac::Texture>& textures, int number);
 
 std::vector<glimac::Spline> splinesTrack1();
+
+//From https://learnopengl.com/Advanced-OpenGL/Cubemaps
+unsigned int loadCubemap(std::vector<std::string> faces);
 
 static void key_callback(GLFWwindow* /*window*/, int /*key*/, int /*scancode*/, int /*action*/, int /*mods*/)
 {
@@ -120,10 +124,21 @@ int main(int argc, char* argv[])
     glimac::Program  ground_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  skybox_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/skybox.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/skybox.fs.glsl");
 
 
-    //glimac::Geometry testGeo;
-    
+    //skybox
+    std::vector<std::string> faces
+    {
+        applicationPath.dirPath() + "assets/textures/skybox/right.jpg",
+        applicationPath.dirPath() + "assets/textures/skybox/left.jpg",
+        applicationPath.dirPath() + "assets/textures/skybox/top.jpg",
+        applicationPath.dirPath() + "assets/textures/skybox/bottom.jpg",
+        applicationPath.dirPath() + "assets/textures/skybox/front.jpg",
+        applicationPath.dirPath() + "assets/textures/skybox/back.jpg"
+    };
+    unsigned int cubemapTexture = loadCubemap(faces);
+    glimac::Skybox sky;
 
 
     glimac::Sphere sphere(1, 16, 32);
@@ -212,18 +227,14 @@ int main(int argc, char* argv[])
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
 
         ViewMatrix = camera.getViewMatrix();
 
-        //lightPos = glm::vec3(glm::sin((float)glfwGetTime()) + 3, 1, glm::cos((float)glfwGetTime()) * 2- 5);
-
-        //std::cout << deltaTime << std::endl;
-
-        
-        
+ 
         if(ratio >= 1 && splineIndex <= splines.size())
         {
             ratio = 0;
@@ -354,7 +365,7 @@ int main(int argc, char* argv[])
             
         }
         
-        
+        sky.Draw(skybox_program, ViewMatrix, ProjMatrix, cubemapTexture);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -462,4 +473,45 @@ std::vector<glimac::Spline> splinesTrack1()
     splines.push_back(spline8);
 
     return splines;
+}
+
+
+//From https://learnopengl.com/Advanced-OpenGL/Cubemaps
+// loads a cubemap texture from 6 individual texture faces
+// order:
+// +X (right)
+// -X (left)
+// +Y (top)
+// -Y (bottom)
+// +Z (front) 
+// -Z (back)
+// -------------------------------------------------------
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
 }

@@ -33,7 +33,7 @@ out vec3 fFragColor;
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
     vec3 lightColor = light.color;
-    vec3 light_ambient = vec3(0.2, 0.2, 0.2) * lightColor;
+    vec3 light_ambient = vec3(0.4, 0.4, 0.4) * lightColor;
     vec3 light_diffuse = vec3(0.5, 0.5, 0.5);
     vec3 light_specular = vec3(1, 1, 1);
 
@@ -54,7 +54,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightColor = light.color;
-    vec3 light_ambient = vec3(0.2, 0.2, 0.2) * lightColor;
+    vec3 light_ambient = vec3(0.4, 0.4, 0.4) * lightColor;
     vec3 light_diffuse = vec3(0.5, 0.5, 0.5);
     vec3 light_specular = vec3(1, 1, 1);
 

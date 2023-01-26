@@ -69,7 +69,7 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
 
             glm::vec3 lightPos;
-            glm::vec3 lightDir = ViewMatrix * glm::vec4(-0.2f, -1.0f, -0.3f, 0.0f);
+            glm::vec3 lightDir = ViewMatrix * glm::vec4(0.5f, -1.0f, 1.0f, 0.0f);
 
             for (GLuint i = 0; i < lightsPosition.size(); i++)
             {

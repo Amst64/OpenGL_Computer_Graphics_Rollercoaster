@@ -188,6 +188,7 @@ int main(int argc, char* argv[])
     glimac::Model streetLight(applicationPath.dirPath() + "assets/models/streetlight/streetlight.obj");
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
     glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
+    glimac::Model plane(applicationPath.dirPath() + "assets/models/plane/plane_hills.obj");
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
 
@@ -326,7 +327,7 @@ int main(int argc, char* argv[])
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 1);
+            wall.Draw(wall_program, 500);
         }
         
         for(int i = 0; i < 5; i++)
@@ -336,7 +337,7 @@ int main(int argc, char* argv[])
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 1);
+            wall.Draw(wall_program, 500);
         }
 
         for (int i = 0; i < 4; i++)
@@ -347,7 +348,7 @@ int main(int argc, char* argv[])
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 1);
+            wall.Draw(wall_program, 500);
         }
         
 
@@ -364,6 +365,13 @@ int main(int argc, char* argv[])
             }
             
         }
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-5, -1.0f, 20));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5.5f, 5.5f, 5.5f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        plane.SetMatrix(fountain_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        plane.Draw(fountain_program, 500);
         
         sky.Draw(skybox_program, ViewMatrix, ProjMatrix, cubemapTexture);
 

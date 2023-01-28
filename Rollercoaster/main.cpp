@@ -15,6 +15,7 @@
 #include <glimac/Spline.hpp>
 #include <glimac/Track.hpp>
 #include <glimac/Model.hpp>
+#include <glimac/InstanceModel.hpp>
 #include <glimac/Wagon.hpp>
 #include <glimac/Skybox.hpp>
 
@@ -125,6 +126,7 @@ int main(int argc, char* argv[])
     glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  skybox_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/skybox.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/skybox.fs.glsl");
+    glimac::Program  grass_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/instance3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
 
 
     //skybox
@@ -189,6 +191,7 @@ int main(int argc, char* argv[])
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
     glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
     glimac::Model plane(applicationPath.dirPath() + "assets/models/plane/plane_hills.obj");
+    glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass/grass.obj", 3000);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
 
@@ -196,9 +199,9 @@ int main(int argc, char* argv[])
 
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_CULL_FACE);
+    /*glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    glFrontFace(GL_CCW);*/
 
     float currentFrame = 0;
     float lastFrame = 0;
@@ -222,13 +225,37 @@ int main(int argc, char* argv[])
 
     float ratio = 0.06f;
     int splineIndex = 0;
+
+    
+    srand((int)glfwGetTime()); // initialize random seed	
+    float offset = 9.5f;
+    float offset1 = 20.0f;
+    for (unsigned int i = 0; i < grass.amount; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float displacement_z = (rand() % (int)(2 * offset1 * 100)) / 100.0f - offset1;
+        float displacement_x = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+        glm::vec3 position = glm::vec3(-20 + displacement_x, -1.0f, -5 - displacement_z);
+        model = glm::translate(model, position);
+
+        // 2. scale: scale between 0.05f and 0.15f
+        float scale = (float)((rand() % 15) / 100.0f) + 0.05f;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 4. now add to list of matrices
+        grass.ModelMatrices.push_back(model);
+    }
+    grass.setBuffer();
+
     while (!glfwWindowShouldClose(window)) {
 
         currentFrame = (float)glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
@@ -318,6 +345,9 @@ int main(int argc, char* argv[])
         fountain.SetMatrix(fountain_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         fountain.Draw(fountain_program, 32);
 
+        grass.SetMatrix(grass_program, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        grass.Draw(grass_program, 1);
+
 
         for(int i = 0; i < 4; i++)
         {
@@ -352,9 +382,9 @@ int main(int argc, char* argv[])
         }
         
 
-        for(int i = -15; i < 15; i++)
+        for(int i = -2; i < 13; i++)
         {
-            for(int j = -10; j < 10; j++)
+            for(int j = -7; j < 10; j++)
             {
                 ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-2.5f + j, -0.7f, 0 - i));
                 //ModelMatrix = glm::scale(ModelMatrix, glm::vec3(50.0f, 15.0f, 15.0f));

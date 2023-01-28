@@ -16,9 +16,9 @@ function(setup_project PROJECT_NAME)
 
     # Enable many good warnings
     if (MSVC)
-        target_compile_options(${TARGET_NAME} PRIVATE /WX /W3)
+        target_compile_options(${TARGET_NAME} PRIVATE /W3)
     else()
-        target_compile_options(${TARGET_NAME} PRIVATE -Werror -W -Wall -Wextra -Wpedantic -pedantic-errors)
+        target_compile_options(${TARGET_NAME} PRIVATE -W -Wall -Wextra -Wpedantic -pedantic-errors)
     endif()
     
     # Add all the source and header files

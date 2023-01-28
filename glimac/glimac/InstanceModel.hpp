@@ -10,37 +10,98 @@
 
 namespace glimac
 {
-	class Model
-	{
+    class InstanceModel
+    {
     public:
 
+        int amount;
+        std::vector<glm::mat4> ModelMatrices;
         std::vector<glimac::Mesh> meshes;
 
-        Model(const FilePath& filepath)
+        InstanceModel(const FilePath& filepath, int _amount):amount{_amount}
         {
             loadOBJ(filepath.c_str());
         }
 
-        void SetMatrix(glimac::Program& program, glm::mat4 ModelMatrix, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix, std::vector<glm::vec3> lightsPosition)
+        void setBuffer()
         {
+            // vertex buffer object
+            unsigned int buffer;
+            glGenBuffers(1, &buffer);
+            glBindBuffer(GL_ARRAY_BUFFER, buffer);
+            glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), ModelMatrices.data(), GL_STATIC_DRAW);
+
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].SetMatrix(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+            {
+                unsigned int VAO = meshes[i].VAO;
+                glBindVertexArray(VAO);
+                // vertex attributes
+                std::size_t vec4Size = sizeof(glm::vec4);
+                glEnableVertexAttribArray(3);
+                glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (const GLvoid*)0);
+                glEnableVertexAttribArray(4);
+                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (GLvoid*)(1 * vec4Size));
+                glEnableVertexAttribArray(5);
+                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (GLvoid*)(2 * vec4Size));
+                glEnableVertexAttribArray(6);
+                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (GLvoid*)(3 * vec4Size));
+
+                glVertexAttribDivisor(3, 1);
+                glVertexAttribDivisor(4, 1);
+                glVertexAttribDivisor(5, 1);
+                glVertexAttribDivisor(6, 1);
+
+                glBindVertexArray(0);
+            }
+        }
+
+        void SetMatrix(glimac::Program& program, glm::mat4 ViewMatrix, glm::mat4 ProjMatrix, glm::mat4 NormalMatrix, std::vector<glm::vec3> lightsPosition)
+        {
+            glm::mat4 nothing = glm::mat4(0);
+            for (unsigned int i = 0; i < meshes.size(); i++)
+                meshes[i].SetMatrix(program, nothing, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         }
 
         void Draw(glimac::Program& program, float shininess)
         {
+            GLuint programID = program.getGLId();
+
+            glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
+            for(unsigned int j = 0; j < meshes.size(); j++)
+            {
+                unsigned int diffuseNr = 1;
+                unsigned int specularNr = 1;
+                for (unsigned int i = 0; i < meshes[j].modelTextures.size(); i++)
+                {
+                    glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+                    // retrieve texture number (the N in diffuse_textureN)
+                    std::string number;
+                    std::string name = meshes[j].modelTextures[i].type;
+                    if (name == "texture_diffuse")
+                        number = std::to_string(diffuseNr++);
+                    else if (name == "texture_specular")
+                        number = std::to_string(specularNr++);
+                    meshes[j].modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
+                    glBindTexture(GL_TEXTURE_2D, meshes[j].modelTextures[i].ID);
+                }
+                glActiveTexture(GL_TEXTURE0);
+            }
+            
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].Draw(program, shininess, true);
+            {
+                glBindVertexArray(meshes[i].VAO);
+                glDrawElementsInstanced(
+                    GL_TRIANGLES, meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount);
+            }
         }
 
     private:
         // model data
-        
         std::string directory;
         std::vector<ModelTexture> textures_loaded;
 
-		void loadOBJ(std::string path)
-		{
+        void loadOBJ(std::string path)
+        {
             Assimp::Importer import;
             const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -51,13 +112,13 @@ namespace glimac
             }
 
             directory = path.substr(0, path.find_last_of("\\"));
-            if(directory == path)
+            if (directory == path)
             {
                 directory = path.substr(0, path.find_last_of("/"));
             }
             std::cout << "directory : " << directory << std::endl;
             processNode(scene->mRootNode, scene);
-		}
+        }
 
         void processNode(aiNode* node, const aiScene* scene)
         {
@@ -136,7 +197,7 @@ namespace glimac
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 bool skip = false;
-                
+
                 for (unsigned int j = 0; j < textures_loaded.size(); j++)
                 {
                     if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
@@ -164,11 +225,11 @@ namespace glimac
             gamma = !gamma; //delete this line if using gamma
             std::string filename = std::string(path);
             filename = directory + '/' + filename;
-            if(type == aiTextureType_DIFFUSE)
+            if (type == aiTextureType_DIFFUSE)
             {
                 glActiveTexture(GL_TEXTURE0);
             }
-            else if(type == aiTextureType_SPECULAR)
+            else if (type == aiTextureType_SPECULAR)
             {
                 glActiveTexture(GL_TEXTURE1);
             }
@@ -207,5 +268,5 @@ namespace glimac
             return textureID;
         }
 
-	};
+    };
 }

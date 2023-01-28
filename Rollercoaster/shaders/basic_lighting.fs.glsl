@@ -33,8 +33,8 @@ out vec4 fFragColor;
 vec4 CalcDirLight(DirLight light, vec4 normal, vec4 viewDir)
 {
     vec4 lightColor = vec4(light.color, 1);
-    vec4 light_ambient = vec4(0.4, 0.4, 0.4, 1) * lightColor;
-    vec4 light_diffuse = vec4(0.5, 0.5, 0.5, 1);
+    vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1) * lightColor;
+    vec4 light_diffuse = vec4(0.7, 0.7, 0.7, 1);
     vec4 light_specular = vec4(1, 1, 1, 1);
 
     vec4 lightDir = vec4(normalize(-light.direction), 0);
@@ -57,7 +57,7 @@ vec4 CalcDirLight(DirLight light, vec4 normal, vec4 viewDir)
 vec4 CalcPointLight(PointLight light, vec4 normal, vec3 fragPos, vec4 viewDir)
 {
     vec4 lightColor = vec4(light.color, 1);
-    vec4 light_ambient = vec4(0.4, 0.4, 0.4, 1) * lightColor;
+    vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1) * lightColor;
     vec4 light_diffuse = vec4(0.5, 0.5, 0.5, 1);
     vec4 light_specular = vec4(1, 1, 1, 1);
 
@@ -88,6 +88,7 @@ vec4 CalcPointLight(PointLight light, vec4 normal, vec3 fragPos, vec4 viewDir)
 
 void main()
 {
+
     // properties
     vec4 norm = vec4(normalize(vNormal), 0);
     vec4 viewDir = vec4(normalize(-vFragPos), 0);

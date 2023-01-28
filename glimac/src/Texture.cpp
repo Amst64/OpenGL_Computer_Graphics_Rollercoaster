@@ -8,7 +8,7 @@ namespace glimac {
         glActiveTexture(textureUnit);
         glGenTextures(1, &ID);
         glBindTexture(GL_TEXTURE_2D, ID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->getWidth(), image->getHeight(), 0, format, GL_FLOAT, image->getPixels());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, image->getWidth(), image->getHeight(), 0, format, GL_FLOAT, image->getPixels());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);

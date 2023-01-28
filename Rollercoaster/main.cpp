@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
     glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
     glimac::Model plane(applicationPath.dirPath() + "assets/models/plane/plane_hills.obj");
-    glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass/grass.obj", 3000);
+    glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass1/grass.obj", 6000);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
 
@@ -200,9 +200,11 @@ int main(int argc, char* argv[])
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
 
-    /*glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);*/
+    glFrontFace(GL_CCW);
+
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     float currentFrame = 0;
     float lastFrame = 0;
@@ -231,7 +233,7 @@ int main(int argc, char* argv[])
     srand((int)glfwGetTime()); // initialize random seed	
     float offset = 9.5f;
     float offset1 = 20.0f;
-    for (unsigned int i = 0; i < grass.amount; i++)
+    for (unsigned int i = 0; i < (unsigned int)(grass.amount/2); i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
         // 1. translation: displace along circle with 'radius' in range [-offset, offset]
@@ -239,6 +241,25 @@ int main(int argc, char* argv[])
         float displacement_x = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
 
         glm::vec3 position = glm::vec3(-20 + displacement_x, -1.0f, -5 - displacement_z);
+        model = glm::translate(model, position);
+
+        // 2. scale: scale between 0.05f and 0.15f
+        float scale = (float)((rand() % 15) / 100.0f) + 0.05f;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 4. now add to list of matrices
+        grass.ModelMatrices.push_back(model);
+    }
+    offset = 20.0f;
+    offset1 = 9.5f;
+    for (unsigned int i = 0; i < (unsigned int)(grass.amount / 2); i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float displacement_z = (rand() % (int)(2 * offset1 * 100)) / 100.0f - offset1;
+        float displacement_x = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+        glm::vec3 position = glm::vec3(0 + displacement_x, -1.0f, -23 - displacement_z);
         model = glm::translate(model, position);
 
         // 2. scale: scale between 0.05f and 0.15f

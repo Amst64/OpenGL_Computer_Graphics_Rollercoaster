@@ -25,39 +25,45 @@ uniform Material uMaterial;
 uniform PointLight uPointLight;
 //uniform DirLight uDirLight;
 
-out vec3 fFragColor;
+out vec4 fFragColor;
 
-vec3 blinnPhong()
+vec4 blinnPhong(vec3 norm)
 {
-    vec3 wo = normalize(-vFragPos);
-    vec3 LightDir = normalize(vec3(1, 1, 1));
+    vec4 normal = vec4(norm, 0);
+    vec4 wo = vec4(normalize(-vFragPos), 0);
+    vec4 LightDir = vec4(normalize(vec3(1, 1, 1)), 0);
 
-    vec3 halfVector = normalize(wo + LightDir);
+    vec4 halfVector = normalize(wo + LightDir);
 
-    vec3 LightIntensity = normalize(vec3(1, 1, 1));
+    vec4 LightIntensity = vec4(normalize(vec3(1, 1, 1)),1);
     
     float ambientValue = 0.1;
-
-    vec3 color = LightIntensity * (vec3(texture(uMaterial.texture_diffuse1, vUVCoords)) * ambientValue + vec3(texture(uMaterial.texture_diffuse1, vUVCoords)) * max(dot(LightDir, vNormal), 0.0) + vec3(texture(uMaterial.texture_specular1, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
+    vec4 texColor = texture(uMaterial.texture_diffuse1, vUVCoords);
+    if (texColor.a < 0.1)
+        discard;
+    vec4 color = LightIntensity * (vec4(texture(uMaterial.texture_diffuse1, vUVCoords)) * ambientValue + vec4(texture(uMaterial.texture_diffuse1, vUVCoords)) * max(dot(LightDir, normal), 0.0) + vec4(texture(uMaterial.texture_specular1, vUVCoords)) * pow(max(dot(halfVector, normal), 0.0), uMaterial.shininess));
 
     return color;
 }
 
-vec3 blinnPhongPointLight()
+vec4 blinnPhongPointLight(vec3 norm)
 {
+    vec4 normal = vec4(norm, 0);
     vec3 intensity = vec3(1, 0, 1);
-    vec3 wo = normalize(-vFragPos);
-    vec3 wi = normalize(uPointLight.position - vFragPos);
-    vec3 halfVector = normalize(wo + wi);
+    vec4 wo = vec4(normalize(-vFragPos), 0);
+    vec4 wi = vec4(normalize(uPointLight.position - vFragPos), 0);
+    vec4 halfVector = vec4(normalize(wo + wi));
 
-    vec3 LightIntensity = normalize(intensity);
-
-    vec3 color = (LightIntensity / (pow(distance(vFragPos, uPointLight.position), 2))) * (vec3(texture(uMaterial.texture_diffuse1, vUVCoords)) * max(dot(wi, vNormal), 0.0) + vec3(texture(uMaterial.texture_specular1, vUVCoords)) * pow(max(dot(halfVector, vNormal), 0.0), uMaterial.shininess));
+    vec4 LightIntensity = vec4(normalize(intensity), 0);
+    vec4 texColor = texture(uMaterial.texture_diffuse1, vUVCoords);
+    if (texColor.a < 0.1)
+        discard;
+    vec4 color = (LightIntensity / (pow(distance(vFragPos, uPointLight.position), 2))) * (vec4(texture(uMaterial.texture_diffuse1, vUVCoords)) * max(dot(wi, normal), 0.0) + vec4(texture(uMaterial.texture_specular1, vUVCoords)) * pow(max(dot(halfVector, normal), 0.0), uMaterial.shininess));
 
     return color;
 }
 
 void main()
 {
-    fFragColor = blinnPhong() + blinnPhongPointLight();
+    fFragColor = blinnPhong(vNormal) + blinnPhongPointLight(vNormal);
 }

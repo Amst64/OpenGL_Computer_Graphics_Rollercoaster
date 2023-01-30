@@ -1,6 +1,6 @@
 #pragma once
 #include "common.hpp"
-#include "Mesh.hpp"
+#include "Mesh2.hpp"
 #include "Texture.hpp"
 #include "FilePath.hpp"
 #include <assimp/Importer.hpp>
@@ -14,7 +14,7 @@ namespace glimac
 	{
     public:
 
-        std::vector<glimac::Mesh> meshes;
+        std::vector<glimac::Mesh2> meshes;
 
         Model(const FilePath& filepath)
         {
@@ -27,10 +27,10 @@ namespace glimac
                 meshes[i].SetMatrix(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         }
 
-        void Draw(glimac::Program& program, float shininess)
+        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isSpecular = true)
         {
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].Draw(program, shininess, true);
+                meshes[i].Draw(program, shininess, viewPos, true, isSpecular);
         }
 
     private:
@@ -42,7 +42,7 @@ namespace glimac
 		void loadOBJ(std::string path)
 		{
             Assimp::Importer import;
-            const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+            const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             {
@@ -74,36 +74,51 @@ namespace glimac
             }
         }
 
-        glimac::Mesh processMesh(aiMesh* mesh, const aiScene* scene)
+        glimac::Mesh2 processMesh(aiMesh* mesh, const aiScene* scene)
         {
-            std::vector<glimac::ShapeVertex> vertices;
+            std::vector<glimac::Vertex> vertices;
             std::vector<unsigned int> indices;
             std::vector<glimac::ModelTexture> textures;
 
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)
             {
-                glimac::ShapeVertex vertex;
+                glimac::Vertex vertex;
                 // process vertex positions, normals and texture coordinates
                 glm::vec3 vector;
                 vector.x = mesh->mVertices[i].x;
                 vector.y = mesh->mVertices[i].y;
                 vector.z = mesh->mVertices[i].z;
-                vertex.position = vector;
+                vertex.Position = vector;
 
-                vector.x = mesh->mNormals[i].x;
-                vector.y = mesh->mNormals[i].y;
-                vector.z = mesh->mNormals[i].z;
-                vertex.normal = vector;
+                // normals
+                if (mesh->HasNormals())
+                {
+                    vector.x = mesh->mNormals[i].x;
+                    vector.y = mesh->mNormals[i].y;
+                    vector.z = mesh->mNormals[i].z;
+                    vertex.Normal = vector;
+                }
 
                 if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
                 {
                     glm::vec2 vec;
                     vec.x = mesh->mTextureCoords[0][i].x;
                     vec.y = mesh->mTextureCoords[0][i].y;
-                    vertex.texCoords = vec;
+                    vertex.TexCoords = vec;
+
+                    // tangent
+                    vector.x = mesh->mTangents[i].x;
+                    vector.y = mesh->mTangents[i].y;
+                    vector.z = mesh->mTangents[i].z;
+                    vertex.Tangent = vector;
+                    // bitangent
+                    vector.x = mesh->mBitangents[i].x;
+                    vector.y = mesh->mBitangents[i].y;
+                    vector.z = mesh->mBitangents[i].z;
+                    vertex.Bitangent = vector;
                 }
                 else
-                    vertex.texCoords = glm::vec2(0.0f, 0.0f);
+                    vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 
                 vertices.push_back(vertex);
             }
@@ -123,9 +138,15 @@ namespace glimac
                 textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
                 std::vector<glimac::ModelTexture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
                 textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+                // 3. normal maps
+                std::vector<glimac::ModelTexture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+                textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+                // 4. height maps
+                std::vector<ModelTexture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+                textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
             }
 
-            return glimac::Mesh(vertices, indices, textures);
+            return glimac::Mesh2(vertices, indices, textures);
         }
 
         std::vector<glimac::ModelTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
@@ -164,14 +185,7 @@ namespace glimac
             gamma = !gamma; //delete this line if using gamma
             std::string filename = std::string(path);
             filename = directory + '/' + filename;
-            if(type == aiTextureType_DIFFUSE)
-            {
-                glActiveTexture(GL_TEXTURE0);
-            }
-            else if(type == aiTextureType_SPECULAR)
-            {
-                glActiveTexture(GL_TEXTURE1);
-            }
+
             unsigned int textureID;
             glGenTextures(1, &textureID);
 
@@ -180,15 +194,25 @@ namespace glimac
             if (data)
             {
                 glBindTexture(GL_TEXTURE_2D, textureID);
-                if (nrComponents == 1)
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-                else if (nrComponents == 3)
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-                else if (nrComponents == 4)
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                if(type == aiTextureType_HEIGHT)
+                {
+                    if (nrComponents == 1)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+                    else if (nrComponents == 3)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                    else if (nrComponents == 4)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                }
+                else
+                {
+                    if (nrComponents == 1)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+                    else if (nrComponents == 3)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                    else if (nrComponents == 4)
+                        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                }
 
-                
-                
                 glGenerateMipmap(GL_TEXTURE_2D);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

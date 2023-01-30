@@ -8,7 +8,7 @@
 #include <glimac/Cube.hpp>
 #include <glimac/Quad.hpp>
 
-#include <glimac/FreeflyCamera.hpp> // Class implemented by Askar SEYADOUMOUGAMMADOU during TP
+#include <glimac/FreeflyCamera.hpp>
 #include <glimac/Mesh.hpp>
 #include <glimac/Image.hpp>
 #include <glimac/Texture.hpp>
@@ -124,9 +124,11 @@ int main(int argc, char* argv[])
     glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  ground_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
-    glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.fs.glsl");
     glimac::Program  skybox_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/skybox.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/skybox.fs.glsl");
     glimac::Program  grass_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/instance3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  plane_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+
 
 
     //skybox
@@ -189,11 +191,12 @@ int main(int argc, char* argv[])
 
     glimac::Model streetLight(applicationPath.dirPath() + "assets/models/streetlight/streetlight.obj");
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
-    glimac::Model wall(applicationPath.dirPath() + "assets/models/wall/wall.obj");
+    glimac::Model wall(applicationPath.dirPath() + "assets/models/wall2/wall.obj");
     glimac::Model plane(applicationPath.dirPath() + "assets/models/plane/plane_hills.obj");
     glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass1/grass.obj", 6000);
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
+    glm::vec3 viewPos;
 
     ProjMatrix = glm::perspective(glm::radians(70.0f), ((float)window_width / (float)window_height), 0.1f, 100.0f);
 
@@ -283,6 +286,7 @@ int main(int argc, char* argv[])
         moveCameraWithKeyInput(window, cameraSpeed * deltaTime);
 
         ViewMatrix = camera.getViewMatrix();
+        viewPos = camera.getPosition();
 
  
         if(ratio >= 1 && splineIndex <= splines.size())
@@ -350,7 +354,7 @@ int main(int argc, char* argv[])
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
         streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        streetLight.Draw(model_program, 32);
+        streetLight.Draw(model_program, 32, viewPos);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x - 3.6f - 5.0f, lampePosition.y, lampePosition.z - 6.0f));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
@@ -358,49 +362,49 @@ int main(int argc, char* argv[])
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
         streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        streetLight.Draw(model_program, 32);
+        streetLight.Draw(model_program, 32, viewPos);
 
         ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(1, -0.7f, -5));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
         fountain.SetMatrix(fountain_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        fountain.Draw(fountain_program, 32);
+        fountain.Draw(fountain_program, 32, viewPos);
 
         grass.SetMatrix(grass_program, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        grass.Draw(grass_program, 1);
+        grass.Draw(grass_program, 1, false);
 
 
         for(int i = 0; i < 4; i++)
         {
-            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.8f, -0.15f, 2));
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.92f, -0.15f, 2));
             ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 500);
+            wall.Draw(wall_program, 1, viewPos);
         }
         
         for(int i = 0; i < 5; i++)
         {
-            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3 * 2.8f - 1.4f, -0.15f, 0.5f - i * 2.8f));
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3 * 2.92f - 1.4f, -0.15f, 0.5f - i * 2.92f));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 500);
+            wall.Draw(wall_program, 1, viewPos);
         }
 
         for (int i = 0; i < 4; i++)
         {
-            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.8f, -0.15f, 0.5f - 4 * 2.8f - 1.4f));
+            ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.92f, -0.15f, 0.5f - 4 * 2.92f - 1.4f));
             ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
             NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 500);
+            wall.Draw(wall_program, 1, viewPos);
         }
         
 
@@ -422,8 +426,8 @@ int main(int argc, char* argv[])
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5.5f, 5.5f, 5.5f));
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        plane.SetMatrix(fountain_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        plane.Draw(fountain_program, 500);
+        plane.SetMatrix(plane_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        plane.Draw(plane_program, 500, viewPos, false);
         
         sky.Draw(skybox_program, ViewMatrix, ProjMatrix, cubemapTexture);
 

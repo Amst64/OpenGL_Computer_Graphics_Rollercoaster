@@ -4,6 +4,7 @@
 struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
+    sampler2D texture_normal1;
     float shininess;
 };
 
@@ -20,34 +21,50 @@ struct PointLight {
 in vec3 vNormal;
 in vec2 vUVCoords;
 in vec3 vFragPos;
-
+in vec3 vTangentLightPos;
+in vec3 vTangentViewPos;
+in vec3 vTangentFragPos;
 
 uniform Material uMaterial;
 
 uniform PointLight uPointLights[NR_POINT_LIGHTS];
 uniform DirLight uDirLight;
 uniform bool isSpecular;
+uniform vec3 uViewPos;
 
 out vec4 fFragColor;
 
 // calculates the color when using a directional light.
-vec4 CalcDirLight(DirLight light, vec4 normal, vec4 viewDir)
+vec4 CalcDirLight(DirLight light)
 {
+
+    vec4 normal2 = vec4(vNormal, 0);
+    vec4 lightPos = vec4(-20, 20, -40, 1);
     vec4 lightColor = vec4(light.color, 1);
     vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1) * lightColor;
     vec4 light_diffuse = vec4(0.7, 0.7, 0.7, 1);
     vec4 light_specular = vec4(1, 1, 1, 1);
 
-    vec4 lightDir = vec4(normalize(-light.direction), 0);
+    vec4 lightDir = vec4(normalize(vTangentLightPos - vTangentFragPos), 0);
+
+    // obtain normal from normal map in range [0,1]
+    vec4 normal = vec4(texture(uMaterial.texture_normal1, vUVCoords).rgb, 0);
+    // transform normal vector to range [-1,1]
+    normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
+
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
     vec4 reflectDir;
     float spec;
-    if(isSpecular)
+    vec4 viewDir;
+    vec4 halfwayDir;
+    if (isSpecular)
     {
+        viewDir = vec4(normalize(vTangentViewPos - vTangentFragPos), 0);
         reflectDir = reflect(-lightDir, normal);
-        spec = pow(max(dot(viewDir, reflectDir), 0.0), uMaterial.shininess);
+        halfwayDir = normalize(lightDir + viewDir);
+        spec = pow(max(dot(normal, halfwayDir), 0.0), uMaterial.shininess);
     }
     // combine results
     vec4 texColor = texture(uMaterial.texture_diffuse1, vUVCoords);
@@ -56,7 +73,7 @@ vec4 CalcDirLight(DirLight light, vec4 normal, vec4 viewDir)
     vec4 ambient = light_ambient * texColor;
     vec4 diffuse = light_diffuse * diff * texColor;
     vec4 specular = light_specular * spec * texture(uMaterial.texture_specular1, vUVCoords);
-    if(isSpecular)
+    if (isSpecular)
     {
         return (ambient + diffuse + specular);
     }
@@ -106,12 +123,12 @@ void main()
     vec4 norm = vec4(normalize(vNormal), 0);
     vec4 viewDir = vec4(normalize(-vFragPos), 0);
 
-    vec4 result = CalcDirLight(uDirLight, norm, viewDir);
+    vec4 result = CalcDirLight(uDirLight);
     //vec3 result = vec3(0, 0, 0);
 
     for (int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(uPointLights[i], norm, vFragPos, viewDir);
 
-    fFragColor =  result;
+    fFragColor = result;
 }
 

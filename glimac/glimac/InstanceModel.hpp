@@ -62,11 +62,12 @@ namespace glimac
                 meshes[i].SetMatrix(program, nothing, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         }
 
-        void Draw(glimac::Program& program, float shininess)
+        void Draw(glimac::Program& program, float shininess, bool isSpecular = true)
         {
             GLuint programID = program.getGLId();
 
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
+            glUniform1i(glGetUniformLocation(programID, "isSpecular"), isSpecular);
             for(unsigned int j = 0; j < meshes.size(); j++)
             {
                 unsigned int diffuseNr = 1;

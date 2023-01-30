@@ -3,15 +3,15 @@
 
 
 namespace glimac {
-	class Mesh {
-	private:
-		GLuint VBO, EBO;
+    class Mesh2 {
+    private:
+        GLuint VBO, EBO;
 
-		void setupMesh()
-		{
+        void setupMesh()
+        {
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glimac::ShapeVertex), vertices.data(), GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glimac::Vertex), vertices.data(), GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             glGenBuffers(1, &EBO);
@@ -25,35 +25,47 @@ namespace glimac {
             const GLuint VERTEX_ATTRIB_POS = 0;
             const GLuint VERTEX_ATTRIB_NORMAL = 1;
             const GLuint VERTEX_ATTRIB_UV = 2;
+            const GLuint VERTEX_ATTRIB_TANGENT = 3;
+            const GLuint VERTEX_ATTRIB_BITANGENT = 4;
+            const GLuint VERTEX_ATTRIB_IDS = 5;
+            const GLuint VERTEX_ATTRIB_WEIGHT = 6;
 
             glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
             glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
             glEnableVertexAttribArray(VERTEX_ATTRIB_UV);
+            glEnableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
+            glEnableVertexAttribArray(VERTEX_ATTRIB_BITANGENT);
+            glEnableVertexAttribArray(VERTEX_ATTRIB_IDS);
+            glEnableVertexAttribArray(VERTEX_ATTRIB_WEIGHT);
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glVertexAttribPointer(VERTEX_ATTRIB_POS, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, position));
-            glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, normal));
-            glVertexAttribPointer(VERTEX_ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(glimac::ShapeVertex), (GLvoid*)offsetof(glimac::ShapeVertex, texCoords));
+            glVertexAttribPointer(VERTEX_ATTRIB_POS, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Position));
+            glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Normal));
+            glVertexAttribPointer(VERTEX_ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, TexCoords));
+            glVertexAttribPointer(VERTEX_ATTRIB_TANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Tangent));
+            glVertexAttribPointer(VERTEX_ATTRIB_BITANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Bitangent));
+            glVertexAttribPointer(VERTEX_ATTRIB_IDS, 4, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, m_BoneIDs));
+            glVertexAttribPointer(VERTEX_ATTRIB_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, m_Weights));
             glBindVertexArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
+        }
 
-	public:
+    public:
         GLuint VAO;
-		std::vector<glimac::ShapeVertex> vertices;
+        std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         std::vector<glimac::Texture> textures;
         std::vector<glimac::ModelTexture> modelTextures;
 
-		Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::Texture> _textures) : vertices{ _vertices }, 
-            indices{_indices}, textures{_textures}
+        Mesh2(std::vector<glimac::Vertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::Texture> _textures) : vertices{ _vertices },
+            indices{ _indices }, textures{ _textures }
         {
             setupMesh();
         }
 
-        Mesh(std::vector<glimac::ShapeVertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::ModelTexture> _modelTextures) : vertices{ _vertices },
+        Mesh2(std::vector<glimac::Vertex> _vertices, std::vector<uint32_t> _indices, std::vector<glimac::ModelTexture> _modelTextures) : vertices{ _vertices },
             indices{ _indices }, modelTextures{ _modelTextures }
         {
             setupMesh();
@@ -69,7 +81,8 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
 
-            glm::vec3 lightPos;
+            glm::vec3 lightPos = ViewMatrix * glm::vec4(-20, 20, 40, 1.0f); //The approximative position of the sun in the scene
+            glUniform3fv(glGetUniformLocation(programID, "uLightPos"), 1, glm::value_ptr(lightPos));
             glm::vec3 lightDir = ViewMatrix * glm::vec4(0.5f, -1.0f, 1.0f, 0.0f);
             //glm::vec3 lightDir = ViewMatrix * glm::vec4(-0.2f, -1.0f, -0.3f, 0.0f);
 
@@ -82,22 +95,25 @@ namespace glimac {
                 glUniform3fv(glGetUniformLocation(programID, ("uPointLights[" + number + "].position").c_str()), 1, glm::value_ptr(lightPos));
                 glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.937f, 0.752f, 0.439f);
             }
-            glUniform3fv(glGetUniformLocation(programID, "uDirLight.direction"), 1 , glm::value_ptr(lightDir));
+            glUniform3fv(glGetUniformLocation(programID, "uDirLight.direction"), 1, glm::value_ptr(lightDir));
         }
 
-		void Draw(glimac::Program& program, float shininess, bool isImportedModel = false, bool isSpecular = true)
+        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isImportedModel = false, bool isSpecular = true)
         {
             GLuint programID = program.getGLId();
-            
+
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
             glUniform1i(glGetUniformLocation(programID, "isSpecular"), isSpecular);
+            glUniform3fv(glGetUniformLocation(programID, "isSpecular"), 1, glm::value_ptr(viewPos));
 
             unsigned int diffuseNr = 1;
             unsigned int specularNr = 1;
+            unsigned int normalNr = 1;
+            unsigned int heightNr = 1;
 
-            if(isImportedModel)
+            if (isImportedModel)
             {
-                
+
                 for (unsigned int i = 0; i < modelTextures.size(); i++)
                 {
                     glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -107,7 +123,12 @@ namespace glimac {
                     if (name == "texture_diffuse")
                         number = std::to_string(diffuseNr++);
                     else if (name == "texture_specular")
-                        number = std::to_string(specularNr++);
+                        number = std::to_string(specularNr++); // transfer unsigned int to string
+                    else if (name == "texture_normal")
+                        number = std::to_string(normalNr++); // transfer unsigned int to string
+                    else if (name == "texture_height")
+                        number = std::to_string(heightNr++); // transfer unsigned int to string
+
                     modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
                     glBindTexture(GL_TEXTURE_2D, modelTextures[i].ID);
                 }
@@ -139,5 +160,5 @@ namespace glimac {
                 glBindVertexArray(0);
             }
         }
-	};
+    };
 }

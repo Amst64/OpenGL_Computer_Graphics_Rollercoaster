@@ -53,26 +53,27 @@ vec4 CalcDirLight(DirLight light)
     normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
 
     // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
+    float diff = max(dot(-normal, lightDir), 0.0);
+    float diff2 = max(dot(normal, lightDir), 0.0);
     // specular shading
-    vec4 reflectDir;
     float spec;
+    float spec2;
     vec4 viewDir;
     vec4 halfwayDir;
     if (isSpecular)
     {
         viewDir = vec4(normalize(vTangentViewPos - vTangentFragPos), 0);
-        reflectDir = reflect(-lightDir, normal);
         halfwayDir = normalize(lightDir + viewDir);
-        spec = pow(max(dot(normal, halfwayDir), 0.0), uMaterial.shininess);
+        spec  = pow(max(dot(-normal, halfwayDir), 0.0), uMaterial.shininess);
+        spec2 = pow(max(dot(normal, halfwayDir), 0.0), uMaterial.shininess);
     }
     // combine results
     vec4 texColor = texture(uMaterial.texture_diffuse1, vUVCoords);
     if (texColor.a < 0.1)
         discard;
     vec4 ambient = light_ambient * texColor;
-    vec4 diffuse = light_diffuse * diff * texColor;
-    vec4 specular = light_specular * spec * texture(uMaterial.texture_specular1, vUVCoords);
+    vec4 diffuse = light_diffuse * (diff + diff2) * texColor;
+    vec4 specular = light_specular * (spec + spec2) * texture(uMaterial.texture_specular1, vUVCoords);
     if (isSpecular)
     {
         return (ambient + diffuse + specular);

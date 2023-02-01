@@ -4,6 +4,7 @@
 struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
+    sampler2D texture_emissive1;
     float shininess;
 };
 
@@ -27,6 +28,7 @@ uniform Material uMaterial;
 uniform PointLight uPointLights[NR_POINT_LIGHTS];
 uniform DirLight uDirLight;
 uniform bool isSpecular;
+uniform bool isEmissive;
 
 out vec4 fFragColor;
 
@@ -56,22 +58,32 @@ vec4 CalcDirLight(DirLight light, vec4 normal, vec4 viewDir)
     vec4 ambient = light_ambient * texColor;
     vec4 diffuse = light_diffuse * diff * texColor;
     vec4 specular = light_specular * spec * texture(uMaterial.texture_specular1, vUVCoords);
-    if(isSpecular)
+    vec4 emissive;
+    if (isEmissive)
     {
-        return (ambient + diffuse + specular);
+        emissive = texture(uMaterial.texture_emissive1, vUVCoords) * 20;
     }
     else
     {
-        return (ambient + diffuse);
+        emissive = vec4(0, 0, 0, 0);
+    }
+
+    if(isSpecular)
+    {
+        return (ambient + diffuse + specular + emissive);
+    }
+    else
+    {
+        return (ambient + diffuse + emissive);
     }
 }
 
 // calculates the color when using a point light.
 vec4 CalcPointLight(PointLight light, vec4 normal, vec3 fragPos, vec4 viewDir)
 {
-    vec4 lightColor = vec4(light.color, 1);
-    vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1) * lightColor;
-    vec4 light_diffuse = vec4(0.5, 0.5, 0.5, 1);
+    vec4 lightColor = vec4(0.5, 0.0, 1.0, 1);
+    vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
+    vec4 light_diffuse = vec4(0.5, 0.5, 0.5, 1) * lightColor;
     vec4 light_specular = vec4(1, 1, 1, 1);
 
     vec4 lightDir = vec4(normalize(light.position - fragPos), 0);
@@ -93,10 +105,26 @@ vec4 CalcPointLight(PointLight light, vec4 normal, vec3 fragPos, vec4 viewDir)
     vec4 ambient = light_ambient * texColor;
     vec4 diffuse = light_diffuse * diff * texColor;
     vec4 specular = light_specular * spec * texture(uMaterial.texture_specular1, vUVCoords);
+    vec4 emissive;
+    if (isEmissive)
+    {
+        emissive = texture(uMaterial.texture_emissive1, vUVCoords) * 20;
+    }
+    else
+    {
+        emissive = vec4(0, 0, 0, 0);
+    }
     ambient *= attenuation;
     diffuse *= attenuation;
-    specular *= attenuation;
-    return (ambient + diffuse + specular);
+    if (isSpecular)
+    {
+        specular *= attenuation;
+        return (ambient + diffuse + specular + emissive);
+    }
+    else
+    {
+        return (ambient + diffuse + emissive);
+    }
 }
 
 void main()
@@ -107,7 +135,7 @@ void main()
     vec4 viewDir = vec4(normalize(-vFragPos), 0);
 
     vec4 result = CalcDirLight(uDirLight, norm, viewDir);
-    //vec3 result = vec3(0, 0, 0);
+    //vec4 result = vec4(0, 0, 0, 0);
 
     for (int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(uPointLights[i], norm, vFragPos, viewDir);

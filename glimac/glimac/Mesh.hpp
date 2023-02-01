@@ -80,7 +80,7 @@ namespace glimac {
 
 
                 glUniform3fv(glGetUniformLocation(programID, ("uPointLights[" + number + "].position").c_str()), 1, glm::value_ptr(lightPos));
-                glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.937f, 0.752f, 0.439f);
+                glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.337f, 0.251f, 0.353f);
             }
             glUniform3fv(glGetUniformLocation(programID, "uDirLight.direction"), 1 , glm::value_ptr(lightDir));
         }

@@ -78,8 +78,8 @@ namespace glimac {
             glUniformMatrix4fv(glGetUniformLocation(programID, "uViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
             glUniformMatrix4fv(glGetUniformLocation(programID, "uProjMatrix"), 1, GL_FALSE, glm::value_ptr(ProjMatrix));
 
-            glm::vec3 lightPos = ViewMatrix * glm::vec4(-20, 20, 40, 1.0f); //The approximative position of the sun in the scene
-            glUniform3fv(glGetUniformLocation(programID, "uLightPos"), 1, glm::value_ptr(lightPos));
+            glm::vec3 lightPos = glm::vec3(-10, 10, -20); //The approximative position of the sun in the scene
+            glUniform3fv(glGetUniformLocation(programID, "lightPos"), 1, glm::value_ptr(lightPos));
             glm::vec3 lightDir = ViewMatrix * glm::vec4(0.5f, -1.0f, 1.0f, 0.0f);
             //glm::vec3 lightDir = ViewMatrix * glm::vec4(-0.2f, -1.0f, -0.3f, 0.0f);
 
@@ -90,23 +90,24 @@ namespace glimac {
 
 
                 glUniform3fv(glGetUniformLocation(programID, ("uPointLights[" + number + "].position").c_str()), 1, glm::value_ptr(lightPos));
-                glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.937f, 0.752f, 0.439f);
+                glUniform3f(glGetUniformLocation(programID, ("uPointLights[" + number + "].color").c_str()), 0.337f, 0.251f, 0.353f);
             }
             glUniform3fv(glGetUniformLocation(programID, "uDirLight.direction"), 1, glm::value_ptr(lightDir));
         }
 
-        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isImportedModel = false, bool isSpecular = true)
+        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isImportedModel = false, bool isSpecular = true, bool emissive = false)
         {
             GLuint programID = program.getGLId();
 
             glUniform1f(glGetUniformLocation(programID, "uMaterial.shininess"), shininess);
             glUniform1i(glGetUniformLocation(programID, "isSpecular"), isSpecular);
-            glUniform3fv(glGetUniformLocation(programID, "isSpecular"), 1, glm::value_ptr(viewPos));
+            glUniform1i(glGetUniformLocation(programID, "isEmissive"), emissive);
+            glUniform3fv(glGetUniformLocation(programID, "uViewPos"), 1, glm::value_ptr(viewPos));
 
             unsigned int diffuseNr = 1;
             unsigned int specularNr = 1;
             unsigned int normalNr = 1;
-            unsigned int heightNr = 1;
+            unsigned int emissiveNr = 1;
 
             if (isImportedModel)
             {
@@ -123,8 +124,8 @@ namespace glimac {
                         number = std::to_string(specularNr++); // transfer unsigned int to string
                     else if (name == "texture_normal")
                         number = std::to_string(normalNr++); // transfer unsigned int to string
-                    else if (name == "texture_height")
-                        number = std::to_string(heightNr++); // transfer unsigned int to string
+                    else if (name == "texture_emissive")
+                        number = std::to_string(emissiveNr++); // transfer unsigned int to string
 
                     modelTextures[i].assignTexUnit(program, ("uMaterial." + name + number).c_str(), i);
                     glBindTexture(GL_TEXTURE_2D, modelTextures[i].ID);

@@ -27,10 +27,10 @@ namespace glimac
                 meshes[i].SetMatrix(program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         }
 
-        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isSpecular = true)
+        void Draw(glimac::Program& program, float shininess, glm::vec3 viewPos, bool isSpecular = true, bool emissive = false)
         {
             for (unsigned int i = 0; i < meshes.size(); i++)
-                meshes[i].Draw(program, shininess, viewPos, true, isSpecular);
+                meshes[i].Draw(program, shininess, viewPos, true, isSpecular, emissive);
         }
 
     private:
@@ -136,8 +136,8 @@ namespace glimac
                 // 3. normal maps
                 std::vector<glimac::ModelTexture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
                 textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-                // 4. height maps
-                std::vector<ModelTexture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+                // 4. emissive maps
+                std::vector<ModelTexture> heightMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_emissive");
                 textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
             }
 

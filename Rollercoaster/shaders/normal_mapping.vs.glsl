@@ -29,18 +29,19 @@ void main()
 
     vNormal = vec3(uNormalMatrix * vertexNormal);
     vUVCoords = aVertexTexCoords;
-    vFragPos = vec3(uViewMatrix * uModelMatrix * vertexPosition);
+    vec4 vFragPos_ws = uModelMatrix * vertexPosition;
+    vFragPos = vec3(uViewMatrix * vFragPos_ws);
 
     mat3 normalMatrix = mat3(uNormalMatrix);
-    vec3 T = normalize(vec3(uModelMatrix * vec4(aTangent, 0.0)));
-    vec3 N = normalize(vec3(uModelMatrix * vec4(aVertexNormal, 0.0)));
+    vec3 T = normalize(normalMatrix * aTangent);
+    vec3 N = normalize(normalMatrix * aVertexNormal);
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
 
     mat3 TBN = transpose(mat3(T, B, N));
     vTangentLightPos = TBN * lightPos;
     vTangentViewPos = TBN * uViewPos;
-    vTangentFragPos = TBN * vFragPos;
+    vTangentFragPos = TBN * vec3(vFragPos_ws);
 
     gl_Position = uProjMatrix * uViewMatrix * uModelMatrix * vertexPosition;
 }

@@ -121,13 +121,14 @@ int main(int argc, char* argv[])
     //glimac::Program  sphere_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  track1_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  light_cube_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/light_cube.fs.glsl");
-    glimac::Program  model_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  streetlight_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.fs.glsl");
     glimac::Program  ground_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  fountain_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  wall_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/normal_mapping.fs.glsl");
     glimac::Program  skybox_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/skybox.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/skybox.fs.glsl");
     glimac::Program  grass_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/instance3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
     glimac::Program  plane_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
+    glimac::Program  train_program = loadProgram(applicationPath.dirPath() + "Rollercoaster/shaders/3D.vs.glsl", applicationPath.dirPath() + "Rollercoaster/shaders/basic_lighting.fs.glsl");
 
 
 
@@ -167,7 +168,7 @@ int main(int argc, char* argv[])
 
     glimac::Quad ground;
     std::vector<glimac::Texture> groundTexture;
-    if (!loadTexture(applicationPath, "ground.png", "texture_diffuse", groundTexture, 0))
+    if (!loadTexture(applicationPath, "ground3.png", "texture_diffuse", groundTexture, 0))
     {
         return -1;
     }
@@ -193,7 +194,9 @@ int main(int argc, char* argv[])
     glimac::Model fountain(applicationPath.dirPath() + "assets/models/Fountain/Fountain.obj");
     glimac::Model wall(applicationPath.dirPath() + "assets/models/wall2/wall.obj");
     glimac::Model plane(applicationPath.dirPath() + "assets/models/plane/plane_hills.obj");
-    glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass1/grass.obj", 6000);
+    glimac::InstanceModel grass(applicationPath.dirPath() + "assets/models/grass1/grass.obj", 9000);
+    glimac::Model train(applicationPath.dirPath() + "assets/models/train/train.obj");
+    glimac::Model trainFigure(applicationPath.dirPath() + "assets/models/train_statue/train_pose.obj");
 
     glm::mat4 ProjMatrix, ModelMatrix, ViewMatrix, MVMatrix, NormalMatrix, ModelTrackMatrix, WagonMatrix;
     glm::vec3 viewPos;
@@ -217,10 +220,13 @@ int main(int argc, char* argv[])
 
     glm::vec3 cube_lightPos(1.8f - 3.6f, 0.0f, -5.5f);
 
-    std::vector<glm::vec3> lightsPosition;
+    glm::vec3 lampePosition = glm::vec3(-9.7f, -0.7f, 1.5f);
+    glm::vec3 lampePosition1 = glm::vec3(-9.7f, -0.7f, -12.0f);
 
-    lightsPosition.push_back(glm::vec3(1.8f, 3.0f, -6.5f));
-    lightsPosition.push_back(glm::vec3(1.8f - 3.6f -5.0f, 3.0f, -6.5f));
+    glm::vec3 lightOffset = glm::vec3(-0.7, 2.3, 0);
+    std::vector<glm::vec3> lightsPosition;
+    lightsPosition.push_back(lampePosition + lightOffset);
+    lightsPosition.push_back(lampePosition1 + lightOffset);
 
     /* Loop until the user closes the window */
     glm::vec3 wagonSplinePos = splines[0].getPosition(0.06f);
@@ -236,7 +242,7 @@ int main(int argc, char* argv[])
     srand((int)glfwGetTime()); // initialize random seed	
     float offset = 9.5f;
     float offset1 = 20.0f;
-    for (unsigned int i = 0; i < (unsigned int)(grass.amount/2); i++)
+    for (unsigned int i = 0; i < (unsigned int)(grass.amount/3); i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
         // 1. translation: displace along circle with 'radius' in range [-offset, offset]
@@ -255,7 +261,7 @@ int main(int argc, char* argv[])
     }
     offset = 20.0f;
     offset1 = 9.5f;
-    for (unsigned int i = 0; i < (unsigned int)(grass.amount / 2); i++)
+    for (unsigned int i = 0; i < (unsigned int)(grass.amount / 3); i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
         // 1. translation: displace along circle with 'radius' in range [-offset, offset]
@@ -263,6 +269,24 @@ int main(int argc, char* argv[])
         float displacement_x = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
 
         glm::vec3 position = glm::vec3(0 + displacement_x, -1.0f, -23 - displacement_z);
+        model = glm::translate(model, position);
+
+        // 2. scale: scale between 0.05f and 0.15f
+        float scale = (float)((rand() % 15) / 100.0f) + 0.05f;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 4. now add to list of matrices
+        grass.ModelMatrices.push_back(model);
+    }
+
+    for (unsigned int i = 0; i < (unsigned int)(grass.amount / 3); i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float displacement_z = (rand() % (int)(2 * offset1 * 100)) / 100.0f - offset1;
+        float displacement_x = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+        glm::vec3 position = glm::vec3(0 + displacement_x, -1.0f, 13 - displacement_z);
         model = glm::translate(model, position);
 
         // 2. scale: scale between 0.05f and 0.15f
@@ -297,9 +321,10 @@ int main(int argc, char* argv[])
 
         if(splineIndex == splines.size())
         {
+            ratio = 0;
             splineIndex = 0;
         }
-        ratio += 1.3f * deltaTime;
+        ratio += 0.01f;
         
 
         ModelTrackMatrix = glm::translate(glm::mat4(1), glm::vec3(5, -0.7f, -5));
@@ -309,10 +334,11 @@ int main(int argc, char* argv[])
         track1Mesh.Draw(track1_program, 32);
 
         //Wagon
-        ModelMatrix = glm::translate(ModelTrackMatrix, wagonSplinePos + splines[splineIndex].GetCurveNormal(ratio) * 0.5f);
+        ModelMatrix = glm::translate(ModelTrackMatrix, splines[splineIndex].getPosition(ratio) + splines[splineIndex].GetCurveNormal(ratio) * 0.5f);
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
         wagonPos = glm::vec3(ModelMatrix[3][0], ModelMatrix[3][1], ModelMatrix[3][2] + 2);
-        wagon1.move(wagonPos, splines[splineIndex].GetCurveTangent(ratio), splines[splineIndex].GetCurveNormal(ratio));
+        wagon1.move(splines[splineIndex].getPosition(ratio) + splines[splineIndex].GetCurveNormal(ratio) * 0.5f, -splines[splineIndex].GetCurveTangent(ratio), splines[splineIndex].GetCurveNormal(ratio));
         WagonMatrix = wagon1.getModelMatrix();
         WagonMatrix[3][0] = 0;
         WagonMatrix[3][1] = 0;
@@ -320,51 +346,43 @@ int main(int argc, char* argv[])
         WagonMatrix = ModelMatrix * WagonMatrix;
         MVMatrix = ViewMatrix * WagonMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        cubeMesh.SetMatrix(light_cube_program, WagonMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        cubeMesh.Draw(light_cube_program, 0);
-
-        ModelMatrix = glm::translate(ModelTrackMatrix, wagonSplinePos1 + splines[splineIndex].GetCurveNormal(ratio) * 0.5f);
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
-        wagonPos = glm::vec3(ModelMatrix[3][0], ModelMatrix[3][1], ModelMatrix[3][2] + 2);
-        wagon2.move(wagonPos, splines[splineIndex].GetCurveTangent(ratio), splines[splineIndex].GetCurveNormal(ratio));
-        WagonMatrix = wagon2.getModelMatrix();
-        WagonMatrix[3][0] = 0;
-        WagonMatrix[3][1] = 0;
-        WagonMatrix[3][2] = 0;
-        WagonMatrix = ModelMatrix * WagonMatrix;
-        MVMatrix = ViewMatrix * WagonMatrix;
-        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        cubeMesh.SetMatrix(light_cube_program, WagonMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        cubeMesh.Draw(light_cube_program, 0);
-
-        wagonSplinePos1 = splines[splineIndex].getPosition(ratio - 0.06f);
-        wagonSplinePos = splines[splineIndex].getPosition(ratio);
+        train.SetMatrix(train_program, WagonMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        train.Draw(train_program, 32, viewPos);
         //
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(3, 0, -5));
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.2f, 1.2f, 1.2f));
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-7, -0.3f, -2));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.7f, 0.7f, 0.7f));
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
         cubeMesh.SetMatrix(cube_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
         cubeMesh.Draw(cube_program, 32);
+
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-8.0f, -0.4f, -5.0f));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(75.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.4f, 0.4f, 0.4f));
+        MVMatrix = ViewMatrix * ModelMatrix;
+        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+        trainFigure.SetMatrix(train_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        trainFigure.Draw(train_program, 32, viewPos);
         
-        glm::vec3 lampePosition = glm::vec3(2.5f, -0.7f, -0.5f);
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x, lampePosition.y, lampePosition.z - 6.0f));
+        
+        ModelMatrix = glm::translate(glm::mat4(1), lampePosition);
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(225.0f), glm::vec3(0, 1, 0));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         MVMatrix = ViewMatrix * ModelMatrix;
-        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        streetLight.Draw(model_program, 32, viewPos);
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        streetLight.SetMatrix(streetlight_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        streetLight.Draw(streetlight_program, 32, viewPos, true, true);
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(lampePosition.x - 3.6f - 5.0f, lampePosition.y, lampePosition.z - 6.0f));
-        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
+        ModelMatrix = glm::translate(glm::mat4(1), lampePosition1);
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(140.0f), glm::vec3(0, 1, 0));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         MVMatrix = ViewMatrix * ModelMatrix;
-        NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
-        streetLight.SetMatrix(model_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-        streetLight.Draw(model_program, 32, viewPos);
+        NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
+        streetLight.SetMatrix(streetlight_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
+        streetLight.Draw(streetlight_program, 32, viewPos, true, true);
 
-        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(1, -0.7f, -5));
+        ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-2, -0.7f, -5));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
         MVMatrix = ViewMatrix * ModelMatrix;
         NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
@@ -381,9 +399,9 @@ int main(int argc, char* argv[])
             ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
-            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
-            wall.Draw(wall_program, 1, viewPos);
+            wall.Draw(wall_program, 1, viewPos, false);
         }
         
         for(int i = 0; i < 5; i++)
@@ -391,7 +409,7 @@ int main(int argc, char* argv[])
             ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-3 * 2.92f - 1.4f, -0.15f, 0.5f - i * 2.92f));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
-            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
             wall.Draw(wall_program, 1, viewPos);
         }
@@ -399,10 +417,10 @@ int main(int argc, char* argv[])
         for (int i = 0; i < 4; i++)
         {
             ModelMatrix = glm::translate(glm::mat4(1), glm::vec3(-i * 2.92f, -0.15f, 0.5f - 4 * 2.92f - 1.4f));
-            ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(0, 1, 0));
+            ModelMatrix = glm::rotate(ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
             MVMatrix = ViewMatrix * ModelMatrix;
-            NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
+            NormalMatrix = glm::transpose(glm::inverse(ModelMatrix));
             wall.SetMatrix(wall_program, ModelMatrix, ViewMatrix, ProjMatrix, NormalMatrix, lightsPosition);
             wall.Draw(wall_program, 1, viewPos);
         }
@@ -538,7 +556,6 @@ std::vector<glimac::Spline> splinesTrack1()
 
     return splines;
 }
-
 
 //From https://learnopengl.com/Advanced-OpenGL/Cubemaps
 // loads a cubemap texture from 6 individual texture faces

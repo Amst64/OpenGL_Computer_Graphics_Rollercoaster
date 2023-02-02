@@ -26,15 +26,11 @@ namespace glimac {
             const GLuint VERTEX_ATTRIB_NORMAL = 1;
             const GLuint VERTEX_ATTRIB_UV = 2;
             const GLuint VERTEX_ATTRIB_TANGENT = 3;
-            const GLuint VERTEX_ATTRIB_IDS = 4;
-            const GLuint VERTEX_ATTRIB_WEIGHT = 5;
 
             glEnableVertexAttribArray(VERTEX_ATTRIB_POS);
             glEnableVertexAttribArray(VERTEX_ATTRIB_NORMAL);
             glEnableVertexAttribArray(VERTEX_ATTRIB_UV);
             glEnableVertexAttribArray(VERTEX_ATTRIB_TANGENT);
-            glEnableVertexAttribArray(VERTEX_ATTRIB_IDS);
-            glEnableVertexAttribArray(VERTEX_ATTRIB_WEIGHT);
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -42,8 +38,6 @@ namespace glimac {
             glVertexAttribPointer(VERTEX_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Normal));
             glVertexAttribPointer(VERTEX_ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, TexCoords));
             glVertexAttribPointer(VERTEX_ATTRIB_TANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, Tangent));
-            glVertexAttribPointer(VERTEX_ATTRIB_IDS, 4, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, m_BoneIDs));
-            glVertexAttribPointer(VERTEX_ATTRIB_WEIGHT, 4, GL_FLOAT, GL_FALSE, sizeof(glimac::Vertex), (GLvoid*)offsetof(glimac::Vertex, m_Weights));
             glBindVertexArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

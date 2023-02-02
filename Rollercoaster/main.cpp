@@ -229,8 +229,6 @@ int main(int argc, char* argv[])
     lightsPosition.push_back(lampePosition1 + lightOffset);
 
     /* Loop until the user closes the window */
-    glm::vec3 wagonSplinePos = splines[0].getPosition(0.06f);
-    glm::vec3 wagonSplinePos1 = splines[0].getPosition(0.0f);
     glm::vec3 wagonPos;
     glimac::Wagon wagon1;
     glimac::Wagon wagon2;
@@ -313,13 +311,13 @@ int main(int argc, char* argv[])
         viewPos = camera.getPosition();
 
  
-        if(ratio >= 1 && splineIndex <= splines.size())
+        if(ratio >= 1 && splineIndex <= (int)splines.size())
         {
             ratio = 0;
             splineIndex += 1;
         }
 
-        if(splineIndex == splines.size())
+        if(splineIndex == (int)splines.size())
         {
             ratio = 0;
             splineIndex = 0;

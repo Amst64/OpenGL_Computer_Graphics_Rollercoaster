@@ -12,7 +12,7 @@ Build the solution, this can take some time.
 
 A *bin* folder will be created at the root of this project. Open the folder, there will be another folder *Debug*.
 
-Open a terminal, place yourself in the *Debug* folder and run this command `./Rollercoaster_exe.exe`. At the begining the application will load all the objects, this can take some time.
+Open a terminal, place yourself in the *Debug* folder and run this command `./Rollercoaster_exe.exe`. At the beginning the application will load all the objects, this can take some time.
 
 ## Compile and run on Linux
 
@@ -22,7 +22,7 @@ Then create a *build* folder at the root of this project, open a terminal and ru
 
 A *bin* folder will be created at the root of this project.
 
-Open a terminal, place yourself in the *bin* folder and run this command `./Rollercoaster_exe`. At the begining the application will load all the objects, this can take some time.
+Open a terminal, place yourself in the *bin* folder and run this command `./Rollercoaster_exe`. At the beginning the application will load all the objects, this can take some time.
 
 ## Control
 z : forward  
